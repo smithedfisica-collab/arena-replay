@@ -1,0 +1,2017 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Replay Arena Raízes</title>
+
+
+    <style>
+
+        * {
+
+            box-sizing: border-box;
+
+        }
+
+
+        body {
+
+            margin: 0;
+
+            font-family: Arial, sans-serif;
+
+            background: #0d1728;
+
+            color: white;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            min-height: 100vh;
+
+            padding: 20px 0;
+
+        }
+
+
+        .container {
+
+            width: 90%;
+
+            max-width: 500px;
+
+            background: white;
+
+            color: #111;
+
+            border-radius: 20px;
+
+            padding: 30px;
+
+            text-align: center;
+
+            box-shadow:
+                0 10px 40px
+                rgba(0,0,0,.3);
+
+        }
+
+
+        .logo {
+
+            font-size: 42px;
+
+            margin-bottom: 5px;
+
+        }
+
+
+        h1 {
+
+            margin: 0;
+
+            font-size: 30px;
+
+        }
+
+
+        .subtitle {
+
+            color: #666;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        .customer {
+
+            font-size: 26px;
+
+            font-weight: bold;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .info {
+
+            background: #f5f5f5;
+
+            border-radius: 12px;
+
+            padding: 15px;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .status {
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            margin: 20px 0;
+
+        }
+
+
+        .status.agendado {
+
+            color: #e69b00;
+
+        }
+
+
+        .status.andamento {
+
+            color: #16a34a;
+
+        }
+
+
+        .status.cancelado {
+
+            color: #dc2626;
+
+        }
+
+
+        .status.finalizado {
+
+            color: #555;
+
+        }
+
+
+        .message {
+
+            font-size: 17px;
+
+            line-height: 1.5;
+
+            color: #555;
+
+            margin: 20px 0;
+
+        }
+
+
+        /* ==========================================
+           BOTÃO SOLICITAR REPLAY
+        ========================================== */
+
+        .replay-button {
+
+            display: none;
+
+            width: 100%;
+
+            border: none;
+
+            border-radius: 12px;
+
+            padding: 17px;
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            background: #16c75a;
+
+            color: white;
+
+            margin-top: 20px;
+
+        }
+
+
+        .replay-button:disabled {
+
+            background: #999;
+
+            cursor: not-allowed;
+
+        }
+
+
+        .waiting {
+
+            color: #777;
+
+            font-size: 14px;
+
+            margin-top: 20px;
+
+        }
+
+
+        /* ==========================================
+           SEÇÃO DOS REPLAYS
+        ========================================== */
+
+        .replays-section {
+
+            margin-top: 25px;
+
+            display: none;
+
+        }
+
+
+        .replays-title {
+
+            font-size: 22px;
+
+            font-weight: bold;
+
+            margin-bottom: 15px;
+
+        }
+
+
+        /* ==========================================
+           CARD
+        ========================================== */
+
+        .replay-card {
+
+            background: #f5f5f5;
+
+            border-radius: 16px;
+
+            padding: 12px;
+
+            margin-bottom: 14px;
+
+            text-align: left;
+
+            overflow: hidden;
+
+        }
+
+
+        .replay-card-title {
+
+            font-weight: bold;
+
+            font-size: 17px;
+
+            margin-bottom: 4px;
+
+        }
+
+
+        .replay-time {
+
+            color: #666;
+
+            font-size: 14px;
+
+            margin-bottom: 10px;
+
+        }
+
+
+        /* ==========================================
+           MINIATURA
+        ========================================== */
+
+        .replay-preview {
+
+            position: relative;
+
+            width: 100%;
+
+            aspect-ratio: 16 / 9;
+
+            border-radius: 12px;
+
+            overflow: hidden;
+
+            background: #111;
+
+            margin-bottom: 11px;
+
+            cursor: pointer;
+
+        }
+
+
+        .replay-thumbnail {
+
+            width: 100%;
+
+            height: 100%;
+
+            object-fit: cover;
+
+            display: block;
+
+        }
+
+
+        .replay-play {
+
+            position: absolute;
+
+            left: 50%;
+
+            top: 50%;
+
+            transform: translate(-50%, -50%);
+
+            width: 58px;
+
+            height: 58px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(0,0,0,.68);
+
+            color: white;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 25px;
+
+            pointer-events: none;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.25);
+
+        }
+
+
+        /* ==========================================
+           BOTÕES
+        ========================================== */
+
+        .replay-actions {
+
+            display: flex;
+
+            gap: 7px;
+
+            flex-wrap: nowrap;
+
+        }
+
+
+        .replay-actions a,
+
+        .replay-actions button {
+
+            flex: 1;
+
+            min-width: 0;
+
+            text-decoration: none;
+
+            text-align: center;
+
+            padding: 12px 8px;
+
+            border-radius: 10px;
+
+            font-weight: bold;
+
+            border: none;
+
+            font-size: 15px;
+
+            cursor: pointer;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+        }
+
+
+        .watch-replay {
+
+            background: #16c75a;
+
+            color: white;
+
+        }
+
+
+        .download-replay {
+
+            background: #0d1728;
+
+            color: white;
+
+        }
+
+
+        .share-replay {
+
+            background: #e1306c;
+
+            color: white;
+
+        }
+
+
+        .share-message {
+
+            display: none;
+
+            font-size: 13px;
+
+            color: #666;
+
+            text-align: center;
+
+            margin-top: 8px;
+
+        }
+
+
+        /* ==========================================
+           CELULAR
+        ========================================== */
+
+        @media (max-width: 430px) {
+
+
+            .container {
+
+                width: 94%;
+
+                padding: 22px;
+
+            }
+
+
+            .customer {
+
+                font-size: 23px;
+
+            }
+
+
+            .replay-actions {
+
+                flex-direction: row;
+
+            }
+
+
+            .replay-actions a,
+
+            .replay-actions button {
+
+                font-size: 12px;
+
+                padding: 11px 5px;
+
+            }
+
+
+            .replay-play {
+
+                width: 48px;
+
+                height: 48px;
+
+                font-size: 21px;
+
+            }
+
+
+        }
+
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <!-- ==========================================
+         LOGO
+    ========================================== -->
+
+    <div class="logo">
+
+        🎾
+
+    </div>
+
+
+    <h1>
+
+        Arena Raízes
+
+    </h1>
+
+
+    <div class="subtitle">
+
+        Replay da sua partida
+
+    </div>
+
+
+    <!-- ==========================================
+         CLIENTE
+    ========================================== -->
+
+    <div
+        class="customer"
+        id="customerName"
+    >
+
+        {{ rental["customer_name"] }}
+
+    </div>
+
+
+    <!-- ==========================================
+         INFORMAÇÕES
+    ========================================== -->
+
+    <div class="info">
+
+
+        <div>
+
+            <strong>
+                Quadra:
+            </strong>
+
+            <span id="court">
+
+                {{ rental["court"] }}
+
+            </span>
+
+        </div>
+
+
+        <br>
+
+
+        <div>
+
+            <strong>
+                Data:
+            </strong>
+
+            <span id="date">
+
+                {{ rental["scheduled_date"] }}
+
+            </span>
+
+        </div>
+
+
+        <br>
+
+
+        <div>
+
+            <strong>
+                Horário:
+            </strong>
+
+            <span id="time">
+
+                {{ rental["scheduled_time"] }}
+
+            </span>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- ==========================================
+         STATUS
+    ========================================== -->
+
+    <div
+        id="status"
+        class="status agendado"
+    >
+
+        AGENDADO
+
+    </div>
+
+
+    <!-- ==========================================
+         MENSAGEM
+    ========================================== -->
+
+    <div
+        id="message"
+        class="message"
+    >
+
+        Sua reserva está confirmada! 💚
+
+        <br><br>
+
+        Assim que sua partida começar,
+        o acesso ao replay será liberado.
+
+    </div>
+
+
+    <!-- ==========================================
+         BOTÃO SOLICITAR REPLAY
+    ========================================== -->
+
+    <button
+        id="replayButton"
+        class="replay-button"
+        onclick="solicitarReplay()"
+    >
+
+        🎬 SOLICITAR REPLAY
+
+    </button>
+
+
+    <!-- ==========================================
+         AVISO
+    ========================================== -->
+
+    <div
+        class="waiting"
+        id="waiting"
+    >
+
+        A página será atualizada automaticamente.
+
+    </div>
+
+
+    <!-- ==========================================
+         REPLAYS
+    ========================================== -->
+
+    <div
+        class="replays-section"
+        id="replaysSection"
+    >
+
+
+        <div class="replays-title">
+
+            🎬 SEUS REPLAYS
+
+        </div>
+
+
+        <div
+            id="replaysList"
+        ></div>
+
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+// ======================================================
+// TOKEN DA RESERVA
+// ======================================================
+
+const publicToken =
+    "{{ rental['public_token'] }}";
+
+
+// ======================================================
+// ELEMENTOS
+// ======================================================
+
+const statusElement =
+    document.getElementById("status");
+
+
+const messageElement =
+    document.getElementById("message");
+
+
+const replayButton =
+    document.getElementById("replayButton");
+
+
+const waitingElement =
+    document.getElementById("waiting");
+
+
+const replaysSection =
+    document.getElementById("replaysSection");
+
+
+const replaysList =
+    document.getElementById("replaysList");
+
+
+// ======================================================
+// FORMATAR HORÁRIO
+// ======================================================
+
+function formatarHorario(dataString) {
+
+
+    if (!dataString) {
+
+
+        return "Horário não disponível";
+
+    }
+
+
+    try {
+
+
+        let dataFormatada =
+
+            dataString
+                .replace(
+                    " ",
+                    "T"
+                );
+
+
+        // ==============================================
+        // SE O HORÁRIO VIER DO SQLITE EM UTC,
+        // ADICIONA O INDICADOR Z.
+        //
+        // O NAVEGADOR CONVERTE AUTOMATICAMENTE
+        // PARA O HORÁRIO LOCAL DO CELULAR.
+        // ==============================================
+
+        if (
+
+            !dataFormatada.endsWith(
+                "Z"
+            )
+
+            &&
+
+            !/[+-]\d{2}:?\d{2}$/.test(
+                dataFormatada
+            )
+
+        ) {
+
+
+            dataFormatada +=
+                "Z";
+
+        }
+
+
+        const data =
+
+            new Date(
+                dataFormatada
+            );
+
+
+        if (
+
+            isNaN(
+                data.getTime()
+            )
+
+        ) {
+
+
+            return dataString;
+
+        }
+
+
+        return data.toLocaleTimeString(
+
+            "pt-BR",
+
+            {
+
+                hour:
+                    "2-digit",
+
+                minute:
+                    "2-digit",
+
+                timeZone:
+                    "America/Belem"
+
+            }
+
+        );
+
+
+    }
+
+
+    catch (erro) {
+
+
+        console.error(
+
+            "Erro ao formatar horário:",
+
+            erro
+
+        );
+
+
+        return dataString;
+
+    }
+
+}
+
+
+// ======================================================
+// RENDERIZAR REPLAYS
+// ======================================================
+
+function renderizarReplays(replays) {
+
+
+    // --------------------------------------------------
+    // NÃO EXISTEM REPLAYS
+    // --------------------------------------------------
+
+    if (
+
+        !replays ||
+
+        replays.length === 0
+
+    ) {
+
+
+        replaysSection.style.display =
+            "none";
+
+
+        replaysList.innerHTML =
+            "";
+
+
+        return;
+
+
+    }
+
+
+    // --------------------------------------------------
+    // LIMPAR LISTA
+    // --------------------------------------------------
+
+    replaysList.innerHTML =
+        "";
+
+
+    // --------------------------------------------------
+    // CRIAR CARDS
+    // --------------------------------------------------
+
+    replays.forEach(
+
+        (replay, index) => {
+
+
+            // ==========================================
+            // URL DO VÍDEO
+            // ==========================================
+
+            const videoUrl =
+                `/replays/${encodeURIComponent(
+                    replay.filename
+                )}`;
+
+
+            // ==========================================
+            // NOME DA MINIATURA
+            //
+            // Exemplo:
+            //
+            // 20260812_092118.mp4
+            //
+            // vira:
+            //
+            // 20260812_092118.jpg
+            // ==========================================
+
+            const thumbnailFilename =
+                replay.filename.replace(
+
+                    /\.mp4$/i,
+
+                    ".jpg"
+
+                );
+
+
+            // ==========================================
+            // URL DA MINIATURA
+            // ==========================================
+
+            const thumbnailUrl =
+                `/replays/thumbnail/${encodeURIComponent(
+                    thumbnailFilename
+                )}`;
+
+
+            // ==========================================
+            // CARD
+            // ==========================================
+
+            const card =
+                document.createElement("div");
+
+
+            card.className =
+                "replay-card";
+
+
+            // ==========================================
+            // TÍTULO
+            // ==========================================
+
+            const titulo =
+                document.createElement("div");
+
+
+            titulo.className =
+                "replay-card-title";
+
+
+            titulo.innerHTML =
+                `🎬 Replay ${index + 1}`;
+
+
+            // ==========================================
+            // HORÁRIO
+            // ==========================================
+
+            const horario =
+                document.createElement("div");
+
+
+            horario.className =
+                "replay-time";
+
+
+            horario.innerHTML =
+                `🕐 Gravado às <strong>${
+                    formatarHorario(
+                        replay.created_at
+                    )
+                }</strong>`;
+
+
+            // ==========================================
+            // ÁREA DA MINIATURA
+            // ==========================================
+
+            const preview =
+                document.createElement("div");
+
+
+            preview.className =
+                "replay-preview";
+
+
+            // ==========================================
+            // IMAGEM DA MINIATURA
+            // ==========================================
+
+            const thumbnail =
+                document.createElement("img");
+
+
+            thumbnail.className =
+                "replay-thumbnail";
+
+
+            thumbnail.src =
+                thumbnailUrl;
+
+
+            thumbnail.alt =
+                `Replay ${index + 1}`;
+
+
+            // ------------------------------------------
+            // SE A MINIATURA NÃO EXISTIR
+            // ------------------------------------------
+
+            thumbnail.onerror =
+                function () {
+
+
+                    console.error(
+
+                        "Miniatura não encontrada:",
+
+                        thumbnailUrl
+
+                    );
+
+
+                    /*
+                     * Não deixa quebrar o card.
+                     */
+
+                    thumbnail.style.display =
+                        "none";
+
+
+                };
+
+
+            preview.appendChild(
+                thumbnail
+            );
+
+
+            // ==========================================
+            // BOTÃO PLAY
+            // ==========================================
+
+            const playIcon =
+                document.createElement("div");
+
+
+            playIcon.className =
+                "replay-play";
+
+
+            playIcon.innerHTML =
+                "▶";
+
+
+            preview.appendChild(
+                playIcon
+            );
+
+
+            // ==========================================
+            // CLICAR NA MINIATURA
+            // ==========================================
+
+            preview.addEventListener(
+
+                "click",
+
+                () => {
+
+
+                    window.open(
+
+                        videoUrl,
+
+                        "_blank"
+
+                    );
+
+
+                }
+
+            );
+
+
+            // ==========================================
+            // ÁREA DOS BOTÕES
+            // ==========================================
+
+            const actions =
+                document.createElement("div");
+
+
+            actions.className =
+                "replay-actions";
+
+
+            // ==========================================
+            // ASSISTIR
+            // ==========================================
+
+            const assistir =
+                document.createElement("a");
+
+
+            assistir.href =
+                videoUrl;
+
+
+            assistir.target =
+                "_blank";
+
+
+            assistir.rel =
+                "noopener";
+
+
+            assistir.className =
+                "watch-replay";
+
+
+            assistir.innerHTML =
+                "▶️ ASSISTIR";
+
+
+            // ==========================================
+            // BAIXAR
+            // ==========================================
+
+            const baixar =
+                document.createElement("a");
+
+
+            baixar.href =
+                videoUrl;
+
+
+            baixar.download =
+                replay.filename;
+
+
+            baixar.className =
+                "download-replay";
+
+
+            baixar.innerHTML =
+                "⬇️ BAIXAR";
+
+
+            // ==========================================
+            // COMPARTILHAR
+            // ==========================================
+
+            const compartilhar =
+                document.createElement("button");
+
+
+            compartilhar.type =
+                "button";
+
+
+            compartilhar.className =
+                "share-replay";
+
+
+            compartilhar.innerHTML =
+                "📱 COMPARTILHAR";
+
+
+            // ==========================================
+            // MENSAGEM
+            // ==========================================
+
+            const mensagem =
+                document.createElement("div");
+
+
+            mensagem.className =
+                "share-message";
+
+
+            compartilhar.addEventListener(
+
+                "click",
+
+                () => {
+
+
+                    compartilharReplay(
+
+                        replay.filename,
+
+                        compartilhar,
+
+                        mensagem
+
+                    );
+
+
+                }
+
+            );
+
+
+            // ==========================================
+            // ADICIONAR BOTÕES
+            // ==========================================
+
+            actions.appendChild(
+                assistir
+            );
+
+
+            actions.appendChild(
+                baixar
+            );
+
+
+            actions.appendChild(
+                compartilhar
+            );
+
+
+            // ==========================================
+            // MONTAR CARD
+            // ==========================================
+
+            card.appendChild(
+                titulo
+            );
+
+
+            card.appendChild(
+                horario
+            );
+
+
+            card.appendChild(
+                preview
+            );
+
+
+            card.appendChild(
+                actions
+            );
+
+
+            card.appendChild(
+                mensagem
+            );
+
+
+            replaysList.appendChild(
+                card
+            );
+
+
+        }
+
+    );
+
+
+    // --------------------------------------------------
+    // MOSTRAR SEÇÃO
+    // --------------------------------------------------
+
+    replaysSection.style.display =
+        "block";
+
+
+}
+
+
+// ======================================================
+// ATUALIZAR TELA
+// ======================================================
+
+function atualizarTela(rental) {
+
+
+    const status =
+        rental.status;
+
+
+    // ==================================================
+    // AGENDADO
+    // ==================================================
+
+    if (status === "AGENDADO") {
+
+
+        statusElement.innerText =
+            "AGENDADO";
+
+
+        statusElement.className =
+            "status agendado";
+
+
+        messageElement.innerHTML = `
+
+            Sua reserva está confirmada! 💚
+
+            <br><br>
+
+            Assim que sua partida começar,
+            o acesso ao replay será liberado.
+
+        `;
+
+
+        replayButton.style.display =
+            "none";
+
+
+        waitingElement.style.display =
+            "block";
+
+
+        replaysSection.style.display =
+            "none";
+
+
+    }
+
+
+    // ==================================================
+    // EM ANDAMENTO
+    // ==================================================
+
+    else if (
+
+        status === "EM ANDAMENTO"
+
+    ) {
+
+
+        statusElement.innerText =
+            "🟢 PARTIDA EM ANDAMENTO";
+
+
+        statusElement.className =
+            "status andamento";
+
+
+        messageElement.innerHTML = `
+
+            Sua partida começou! 🎾
+
+            <br><br>
+
+            Quando quiser assistir ao replay,
+            toque no botão abaixo.
+
+        `;
+
+
+        replayButton.style.display =
+            "block";
+
+
+        replayButton.disabled =
+            false;
+
+
+        replayButton.innerText =
+            "🎬 SOLICITAR REPLAY";
+
+
+        waitingElement.style.display =
+            "block";
+
+
+        waitingElement.innerText =
+            "O status é atualizado automaticamente.";
+
+
+        // Se já houver replay
+
+        renderizarReplays(
+            rental.replays
+        );
+
+
+    }
+
+
+    // ==================================================
+    // CANCELADO
+    // ==================================================
+
+    else if (
+
+        status === "CANCELADO"
+
+    ) {
+
+
+        statusElement.innerText =
+            "RESERVA CANCELADA";
+
+
+        statusElement.className =
+            "status cancelado";
+
+
+        messageElement.innerHTML = `
+
+            Esta reserva foi cancelada.
+
+            <br><br>
+
+            Esperamos receber você
+            em uma próxima oportunidade. 💚
+
+        `;
+
+
+        replayButton.style.display =
+            "none";
+
+
+        waitingElement.style.display =
+            "none";
+
+
+        renderizarReplays(
+            rental.replays
+        );
+
+
+    }
+
+
+    // ==================================================
+    // FINALIZADO
+    // ==================================================
+
+    else if (
+
+        status === "FINALIZADO"
+
+    ) {
+
+
+        statusElement.innerText =
+            "PARTIDA FINALIZADA";
+
+
+        statusElement.className =
+            "status finalizado";
+
+
+        messageElement.innerHTML = `
+
+            Obrigado por jogar
+            na Arena Raízes! 💚
+
+            <br><br>
+
+            Seus replays estão
+            disponíveis abaixo.
+
+        `;
+
+
+        replayButton.style.display =
+            "none";
+
+
+        waitingElement.style.display =
+            "none";
+
+
+        renderizarReplays(
+            rental.replays
+        );
+
+
+    }
+
+
+}
+
+
+// ======================================================
+// CONSULTAR STATUS
+// ======================================================
+
+async function verificarStatus() {
+
+
+    try {
+
+
+        const resposta =
+            await fetch(
+
+                `/api/replay/status/${encodeURIComponent(
+                    publicToken
+                )}?t=${Date.now()}`,
+
+                {
+
+                    method:
+                        "GET",
+
+                    cache:
+                        "no-store",
+
+                    headers: {
+
+                        "Cache-Control":
+                            "no-cache",
+
+                        "Pragma":
+                            "no-cache"
+
+                    }
+
+                }
+
+            );
+
+
+        if (!resposta.ok) {
+
+
+            throw new Error(
+
+                `Erro HTTP: ${resposta.status}`
+
+            );
+
+
+        }
+
+
+        const data =
+            await resposta.json();
+
+
+        if (data.success) {
+
+
+            atualizarTela(
+                data
+            );
+
+
+        }
+
+
+    }
+
+    catch (erro) {
+
+
+        console.error(
+
+            "Erro ao consultar status:",
+
+            erro
+
+        );
+
+
+    }
+
+
+}
+
+
+// ======================================================
+// SOLICITAR REPLAY
+// ======================================================
+
+async function solicitarReplay() {
+
+
+    replayButton.disabled =
+        true;
+
+
+    replayButton.innerText =
+        "⏳ GERANDO REPLAY...";
+
+
+    try {
+
+
+        const resposta =
+            await fetch(
+
+                "/api/replay/request",
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            token:
+                                publicToken
+
+                        })
+
+                }
+
+            );
+
+
+        const data =
+            await resposta.json();
+
+
+        // ==================================================
+        // SUCESSO
+        // ==================================================
+
+        if (data.success) {
+
+
+            replayButton.innerText =
+                "🎬 REPLAY GERADO!";
+
+
+            /*
+             * Consulta novamente o servidor.
+             */
+
+            verificarStatus();
+
+
+            setTimeout(
+
+                verificarStatus,
+
+                500
+
+            );
+
+
+            setTimeout(
+
+                verificarStatus,
+
+                1500
+
+            );
+
+
+            setTimeout(
+
+                verificarStatus,
+
+                3000
+
+            );
+
+
+        }
+
+
+        // ==================================================
+        // ERRO
+        // ==================================================
+
+        else {
+
+
+            replayButton.disabled =
+                false;
+
+
+            replayButton.innerText =
+                "🎬 SOLICITAR REPLAY";
+
+
+            alert(
+
+                data.message ||
+
+                "Não foi possível gerar o replay."
+
+            );
+
+
+        }
+
+
+    }
+
+    catch (erro) {
+
+
+        console.error(
+
+            "Erro ao solicitar replay:",
+
+            erro
+
+        );
+
+
+        replayButton.disabled =
+            false;
+
+
+        replayButton.innerText =
+            "🎬 SOLICITAR REPLAY";
+
+
+        alert(
+
+            "Não foi possível solicitar o replay."
+
+        );
+
+
+    }
+
+
+}
+
+
+// ======================================================
+// COMPARTILHAR REPLAY
+// ======================================================
+
+async function compartilharReplay(
+
+    filename,
+
+    botao,
+
+    mensagem
+
+) {
+
+
+    mensagem.style.display =
+        "block";
+
+
+    mensagem.innerText =
+        "Preparando vídeo...";
+
+
+    try {
+
+
+        const url =
+            new URL(
+
+                `/replays/${encodeURIComponent(
+                    filename
+                )}`,
+
+                window.location.origin
+
+            ).href;
+
+
+        // --------------------------------------------------
+        // VERIFICAR SUPORTE
+        // --------------------------------------------------
+
+        if (
+
+            !navigator.share ||
+
+            !navigator.canShare
+
+        ) {
+
+
+            mensagem.innerText =
+                "Seu navegador não permite compartilhar o vídeo diretamente. Use o botão BAIXAR.";
+
+
+            return;
+
+
+        }
+
+
+        // --------------------------------------------------
+        // BAIXAR VÍDEO
+        // --------------------------------------------------
+
+        const resposta =
+            await fetch(
+                url
+            );
+
+
+        if (!resposta.ok) {
+
+
+            throw new Error(
+
+                "Não foi possível carregar o vídeo."
+
+            );
+
+
+        }
+
+
+        const blob =
+            await resposta.blob();
+
+
+        // --------------------------------------------------
+        // CRIAR ARQUIVO
+        // --------------------------------------------------
+
+        const arquivo =
+            new File(
+
+                [
+
+                    blob
+
+                ],
+
+                filename,
+
+                {
+
+                    type:
+
+                        blob.type ||
+
+                        "video/mp4"
+
+                }
+
+            );
+
+
+        // --------------------------------------------------
+        // VERIFICAR COMPARTILHAMENTO
+        // --------------------------------------------------
+
+        if (
+
+            !navigator.canShare({
+
+                files:
+                    [arquivo]
+
+            })
+
+        ) {
+
+
+            mensagem.innerText =
+                "Seu aparelho não permite compartilhar este vídeo diretamente. Baixe o replay e compartilhe pelo Instagram.";
+
+
+            return;
+
+
+        }
+
+
+        mensagem.innerText =
+            "Abrindo opções de compartilhamento...";
+
+
+        // --------------------------------------------------
+        // COMPARTILHAR
+        // --------------------------------------------------
+
+        await navigator.share({
+
+
+            title:
+                "Replay Arena Raízes",
+
+
+            text:
+                "🎾 Meu replay na Arena Raízes!",
+
+
+            files:
+                [
+
+                    arquivo
+
+                ]
+
+
+        });
+
+
+        mensagem.innerText =
+            "Vídeo pronto para compartilhar! 💚";
+
+
+    }
+
+    catch (erro) {
+
+
+        console.error(
+
+            "Erro ao compartilhar:",
+
+            erro
+
+        );
+
+
+        // Usuário cancelou
+
+        if (
+
+            erro.name ===
+            "AbortError"
+
+        ) {
+
+
+            mensagem.style.display =
+                "none";
+
+
+            return;
+
+
+        }
+
+
+        mensagem.innerText =
+            "Não foi possível compartilhar diretamente. Baixe o vídeo e compartilhe pelo Instagram.";
+
+
+    }
+
+
+}
+
+
+// ======================================================
+// PRIMEIRA CONSULTA
+// ======================================================
+
+verificarStatus();
+
+
+// ======================================================
+// ATUALIZAR AUTOMATICAMENTE
+// ======================================================
+
+setInterval(
+
+    verificarStatus,
+
+    5000
+
+);
+
+
+</script>
+
+
+</body>
+
+</html>

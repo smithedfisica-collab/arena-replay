@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <div class="topbar">
+
+        <div class="page-title">
+
+            <h1>Dashboard</h1>
+
+            <p>Central de Controle</p>
+
+        </div>
+
+        <div class="system-status">
+
+            <div class="status-online">
+
+                <span class="status-dot"></span>
+
+                Sistema Online
+
+            </div>
+
+            <small id="current-date"></small>
+
+            <small id="current-time"></small>
+
+        </div>
+
+    </div>
+
+
+    <div class="dashboard-grid">
+
+        <!-- CÂMERAS -->
+
+        {% if cameras_online > 0 %}
+
+            {% with
+                icon="camera-video",
+                title="Câmeras",
+                value=cameras_online|string + " Online",
+                subtitle="Câmeras conectadas"
+            %}
+
+                {% include "components/card.html" %}
+
+            {% endwith %}
+
+        {% else %}
+
+            {% with
+                icon="camera-video",
+                title="Câmeras",
+                value="Offline",
+                subtitle="Nenhuma câmera conectada"
+            %}
+
+                {% include "components/card.html" %}
+
+            {% endwith %}
+
+        {% endif %}
+
+
+        <!-- BUFFER -->
+
+        {% with
+            icon="clock-history",
+            title="Buffer",
+            value=buffer_seconds|string + " segundos",
+            subtitle="Tempo de replay"
+        %}
+
+            {% include "components/card.html" %}
+
+        {% endwith %}
+
+
+        <!-- REPLAYS -->
+
+        {% with
+            icon="collection-play",
+            title="Replays",
+            value=replays_count,
+            subtitle="Replays salvos"
+        %}
+
+            {% include "components/card.html" %}
+
+        {% endwith %}
+
+
+        <!-- ESPAÇO LIVRE -->
+
+        {% with
+            icon="hdd",
+            title="Espaço Livre",
+            value=free_space_gb|string + " GB",
+            subtitle="HD Local"
+        %}
+
+            {% include "components/card.html" %}
+
+        {% endwith %}
+
+
+        <!-- SISTEMA -->
+
+        {% with
+            icon="activity",
+            title="Sistema",
+            value="Online",
+            subtitle="Servidor funcionando"
+        %}
+
+            {% include "components/card.html" %}
+
+        {% endwith %}
+
+
+        <!-- VERSÃO -->
+
+        {% with
+            icon="box",
+            title="Versão",
+            value="0.1.0",
+            subtitle="Arena Replay"
+        %}
+
+            {% include "components/card.html" %}
+
+        {% endwith %}
+
+    </div>
+
+</div>
+
+
+<script>
+
+function atualizarDataHora() {
+
+    const agora = new Date();
+
+    const data = agora.toLocaleDateString(
+        "pt-BR"
+    );
+
+    const hora = agora.toLocaleTimeString(
+        "pt-BR",
+        {
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+
+    document.getElementById(
+        "current-date"
+    ).textContent = data;
+
+    document.getElementById(
+        "current-time"
+    ).textContent = hora;
+
+}
+
+
+atualizarDataHora();
+
+setInterval(
+    atualizarDataHora,
+    1000
+);
+
+</script>
+
+{% endblock %}

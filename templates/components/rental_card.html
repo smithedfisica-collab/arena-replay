@@ -1,0 +1,284 @@
+<div class="rental-card">
+
+    <!-- CABEÇALHO -->
+    <div class="rental-header">
+
+        <div class="rental-title">
+
+            <h3>{{ rental["customer_name"] }}</h3>
+
+            <span class="court">
+
+                {% if rental["court"] == "Ping Pong 1" %}
+
+                    🏓 {{ rental["court"] }}
+
+                {% else %}
+
+                    🏖 {{ rental["court"] }}
+
+                {% endif %}
+
+            </span>
+
+        </div>
+
+        <span class="status {{ rental['status']|lower|replace(' ', '-') }}">
+
+            {{ rental["status"] }}
+
+        </span>
+
+    </div>
+
+
+    <!-- INFORMAÇÕES -->
+    <div class="rental-info">
+
+        <!-- DATA + DIA DA SEMANA -->
+<div class="info-item">
+
+    <i class="bi bi-calendar-event"></i>
+
+    <div
+        class="rental-date"
+        data-date="{{ rental['scheduled_date'] }}">
+
+        <span class="weekday"></span>
+
+        <span class="formatted-date">
+            {{ rental["scheduled_date"][8:10] }}/{{ rental["scheduled_date"][5:7] }}/{{ rental["scheduled_date"][0:4] }}
+        </span>
+
+    </div>
+
+</div>
+
+        <!-- HORÁRIO + DURAÇÃO -->
+        <div class="info-item">
+
+            <i class="bi bi-clock"></i>
+
+            <span>
+
+                {{ rental["scheduled_time"] }}
+
+                •
+
+                {{ rental["duration"] + rental["extra_duration"] }} min
+
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- AÇÕES -->
+    <div class="rental-actions">
+
+        {% if rental["status"] == "AGENDADO" %}
+
+
+            <!-- INICIAR -->
+            <form
+                action="/rentals/start/{{ rental['id'] }}"
+                method="POST">
+
+                <button
+                    type="submit"
+                    class="btn-start">
+
+                    ▶ Iniciar
+
+                </button>
+
+            </form>
+
+
+            <!-- EDITAR -->
+            <button
+                type="button"
+                class="btn-edit"
+                data-id="{{ rental['id'] }}"
+                data-customer="{{ rental['customer_name'] }}"
+                data-phone="{{ rental['phone'] }}"
+                data-court="{{ rental['court'] }}"
+                data-date="{{ rental['scheduled_date'] }}"
+                data-time="{{ rental['scheduled_time'] }}"
+                data-duration="{{ rental['duration'] }}">
+
+                ✏ Editar
+
+            </button>
+
+
+            <!-- CANCELAR -->
+            <form
+                action="/rentals/cancel/{{ rental['id'] }}"
+                method="POST">
+
+                <button
+                    type="submit"
+                    class="btn-cancel">
+
+                    ❌ Cancelar
+
+                </button>
+
+            </form>
+
+
+            <!-- WHATSAPP -->
+            {% if rental["phone"] and rental["public_token"] %}
+
+                <a
+                    href="https://wa.me/{{ rental['phone']|replace('(', '')|replace(')', '')|replace(' ', '')|replace('-', '') }}?text={{
+                        (
+                            '🏖️ Arena Raízes\n\n'
+                            ~ 'Olá, ' ~ rental['customer_name'] ~ '! 👋\n\n'
+                            ~ 'Sua reserva foi confirmada com sucesso! 🎉\n\n'
+                            ~ '📅 Data: '
+                            ~ rental['scheduled_date'][8:10]
+                            ~ '/'
+                            ~ rental['scheduled_date'][5:7]
+                            ~ '/'
+                            ~ rental['scheduled_date'][0:4]
+                            ~ '\n'
+
+                            ~ '🕐 Horário: '
+                            ~ rental['scheduled_time']
+                            ~ '\n'
+
+                            ~ '🏖️ Espaço: '
+                            ~ rental['court']
+                            ~ '\n'
+
+                            ~ '⏱️ Duração: '
+                            ~ (rental['duration'] + rental['extra_duration'])
+                            ~ ' minutos\n\n'
+
+                            ~ '🎥 Você poderá acompanhar o Replay da sua partida pelo link abaixo.\n\n'
+
+                            ~ '🔗 https://replay.arenaraizes.com.br/r/'
+                            ~ rental['public_token']
+                            ~ '\n\n'
+
+                            ~ '⏳ O Replay será ativado automaticamente quando sua partida for iniciada pela nossa equipe.\n\n'
+
+                            ~ 'Esperamos você na Arena Raízes! 💚\n'
+
+                            ~ 'Bom jogo! 🎾'
+                        )|urlencode
+                    }}"
+
+                    target="_blank"
+                    class="btn-whatsapp">
+
+                    📱 WhatsApp
+
+                </a>
+
+            {% endif %}
+
+
+        {% elif rental["status"] == "EM ANDAMENTO" %}
+
+
+            <!-- ADICIONAR TEMPO -->
+            <button
+                type="button"
+                class="btn-extra"
+                data-id="{{ rental['id'] }}">
+
+                ➕ Tempo
+
+            </button>
+
+
+            <!-- FINALIZAR -->
+            <form
+                action="/rentals/finish/{{ rental['id'] }}"
+                method="POST">
+
+                <button
+                    type="submit"
+                    class="btn-finish">
+
+                    ⏹ Finalizar
+
+                </button>
+
+            </form>
+
+
+        {% elif rental["status"] == "FINALIZADO" or rental["status"] == "CANCELADO" %}
+
+
+            <!-- REMOVER -->
+            <form
+                action="/rentals/delete/{{ rental['id'] }}"
+                method="POST">
+
+                <button
+                    type="submit"
+                    class="btn-delete">
+
+                    🗑 Remover da Tela
+
+                </button>
+
+            </form>
+
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<script>
+
+document.querySelectorAll(".rental-date").forEach(function(element) {
+
+    const dateString = element.dataset.date;
+
+    if (!dateString) return;
+
+    const parts = dateString.split("-");
+
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1;
+    const day = parseInt(parts[2]);
+
+    const date = new Date(year, month, day);
+
+    const weekdays = [
+
+        "Domingo",
+        "Segunda-feira",
+        "Terça-feira",
+        "Quarta-feira",
+        "Quinta-feira",
+        "Sexta-feira",
+        "Sábado"
+
+    ];
+
+    const weekday = weekdays[date.getDay()];
+
+    const formattedDate =
+        String(day).padStart(2, "0")
+        + "/"
+        + String(month + 1).padStart(2, "0")
+        + "/"
+        + year;
+
+    element.querySelector(".weekday").textContent = weekday;
+
+    element.querySelector(".formatted-date").textContent = formattedDate;
+
+});
+
+</script>

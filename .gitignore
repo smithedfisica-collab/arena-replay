@@ -1,0 +1,19 @@
+﻿__pycache__/
+*.py[cod]
+
+# Banco de dados local
+arena.db
+
+# Vídeos e replays
+*.mp4
+*.avi
+*.mov
+storage/
+
+# Cloudflared
+cloudflared.exe
+cloudflared.exe.exe
+cloudflared-windows-amd64.msi
+
+# Atalhos do Windows
+*.lnk

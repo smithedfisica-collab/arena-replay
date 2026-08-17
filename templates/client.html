@@ -1,0 +1,111 @@
+{% extends "client_base.html" %}
+
+{% block content %}
+
+<div class="client-container">
+
+    <div class="card">
+
+        <h1>🏖 Arena Raízes</h1>
+
+        <div class="info">
+
+            <div class="label">
+
+                Cliente
+
+            </div>
+
+            <div class="value">
+
+                {{ session.customer }}
+
+            </div>
+
+        </div>
+
+        <div class="info">
+
+            <div class="label">
+
+                Local
+
+            </div>
+
+            <div class="value">
+
+                {% if session.location == "arena" %}
+
+                    🏖 Arena
+
+                {% else %}
+
+                    🏓 Salão
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <div class="info">
+
+            <div class="label">
+
+                Horário
+
+            </div>
+
+            <div class="value">
+
+                {{ session.start }}
+
+                <br>
+
+                até
+
+                <br>
+
+                {{ session.end }}
+
+            </div>
+
+        </div>
+
+        <hr>
+
+        <div id="status">
+
+    <div id="waiting">
+
+        ⏳<br><br>
+
+        Sua partida ainda não começou.
+
+        <br><br>
+
+        O botão Replay será liberado automaticamente.
+
+    </div>
+
+    <button id="replayButton">
+
+        🎬 GRAVAR REPLAY
+
+    </button>
+
+</div>
+
+    </div>
+
+</div>
+
+<script>
+
+    const SESSION_START = "{{ session.start }}";
+
+    const SESSION_TOKEN = "{{ session.token }}";
+
+</script>
+
+{% endblock %}

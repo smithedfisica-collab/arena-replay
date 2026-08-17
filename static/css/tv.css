@@ -1,0 +1,286 @@
+/* =======================================
+   ARENA REPLAY TV
+======================================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    cursor:none;
+}
+
+html,
+body{
+
+    width:100%;
+    height:100%;
+
+    overflow:hidden;
+
+    background:#000;
+
+    font-family:Arial, Helvetica, sans-serif;
+
+}
+
+#liveContainer{
+
+    width:100vw;
+    height:100vh;
+
+    position:relative;
+
+}
+
+#tvStream{
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+    display:block;
+
+}
+
+#logo{
+
+    position:absolute;
+
+    top:25px;
+    left:25px;
+
+    background:rgba(0,0,0,.55);
+
+    padding:14px 22px;
+
+    border-radius:12px;
+
+    color:white;
+
+    font-size:24px;
+
+    font-weight:bold;
+
+    z-index:9999;
+
+    backdrop-filter:blur(8px);
+
+}
+
+#liveBadge{
+
+    position:absolute;
+
+    top:25px;
+    right:25px;
+
+    background:#E11D48;
+
+    color:white;
+
+    padding:14px 24px;
+
+    border-radius:12px;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    z-index:9999;
+
+}
+
+#liveDot{
+
+    width:14px;
+    height:14px;
+
+    border-radius:50%;
+
+    background:white;
+
+    animation:pulse 1s infinite;
+
+}
+
+@keyframes pulse{
+
+    0%{
+
+        transform:scale(1);
+
+        opacity:1;
+
+    }
+
+    50%{
+
+        transform:scale(1.4);
+
+        opacity:.3;
+
+    }
+
+    100%{
+
+        transform:scale(1);
+
+        opacity:1;
+
+    }
+
+}
+
+/* TELA REPLAY */
+
+#replayOverlay{
+
+    position:absolute;
+
+    inset:0;
+
+    background:rgba(0,0,0,.82);
+
+    display:none;
+
+    justify-content:center;
+
+    align-items:center;
+
+    flex-direction:column;
+
+    color:white;
+
+    z-index:10000;
+
+    animation:replayFlash .35s;
+
+}
+
+#replayTitle{
+
+    font-size:72px;
+
+    font-weight:bold;
+
+    margin-bottom:20px;
+
+}
+
+#arenaName{
+
+    font-size:34px;
+
+    opacity:.9;
+
+    margin-bottom:50px;
+
+}
+
+#countdown{
+
+    font-size:180px;
+
+    font-weight:bold;
+
+    color:#22C55E;
+
+    animation:countdownZoom 1s linear infinite;
+
+}
+
+@keyframes countdownZoom{
+
+    0%{
+
+        transform:scale(.4);
+
+        opacity:0;
+
+    }
+
+    20%{
+
+        transform:scale(1.15);
+
+        opacity:1;
+
+    }
+
+    80%{
+
+        transform:scale(1);
+
+        opacity:1;
+
+    }
+
+    100%{
+
+        transform:scale(.8);
+
+        opacity:0;
+
+    }
+
+}
+
+@keyframes replayFlash{
+
+    0%{
+
+        opacity:0;
+
+    }
+
+    50%{
+
+        opacity:.9;
+
+    }
+
+    100%{
+
+        opacity:0;
+
+    }
+
+}
+
+/* ==========================================================
+   LOGO ARENA RAÍZES - PARTE INFERIOR DA TV
+========================================================== */
+
+#tvLogo {
+
+    position: fixed;
+
+    bottom: 15px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    z-index: 9999;
+
+    pointer-events: none;
+
+}
+
+
+#tvLogo img {
+
+    width: 180px;
+
+    height: auto;
+
+    display: block;
+
+}

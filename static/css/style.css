@@ -1,0 +1,1441 @@
+/*
+
+========================================================
+
+ARENA DESIGN SYSTEM (ADS)
+
+Versão........: 1.0
+
+Projeto.......: Arena Replay
+
+Autor.........: Laís + ChatGPT
+
+========================================================
+
+*/
+
+/* =====================================================
+   RESET
+===================================================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+/* =====================================================
+   CORES DO SISTEMA
+===================================================== */
+
+:root{
+
+    /* Fundo */
+
+    --bg:#0F172A;
+
+    --sidebar:#1E293B;
+
+    --card:#1E293B;
+
+    /* Cores */
+
+    --primary:#22C55E;
+
+    --blue:#3B82F6;
+
+    --yellow:#F59E0B;
+
+    --red:#EF4444;
+
+    /* Textos */
+
+    --text:#FFFFFF;
+
+    --text-secondary:#94A3B8;
+
+    /* Layout */
+
+    --radius:18px;
+
+    --transition:.25s ease;
+
+}
+
+/* =====================================================
+   BODY
+===================================================== */
+
+body{
+
+    background:var(--bg);
+
+    color:var(--text);
+
+    font-family:Arial, Helvetica, sans-serif;
+
+}
+
+/* =====================================================
+   LAYOUT PRINCIPAL
+===================================================== */
+
+body{
+
+    display:flex;
+
+    min-height:100vh;
+
+}
+
+.content{
+
+    flex:1;
+
+    padding:40px;
+
+}
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+.sidebar{
+
+    width:280px;
+
+    background:var(--sidebar);
+
+    min-height:100vh;
+
+    padding:35px 25px;
+
+}
+
+/* =====================================================
+   LOGO
+===================================================== */
+
+.logo{
+
+    text-align:center;
+
+    margin-bottom:40px;
+
+}
+
+.logo-icon{
+
+    font-size:70px;
+
+    margin-bottom:18px;
+
+}
+
+.logo h1{
+
+    font-size:32px;
+
+    font-weight:700;
+
+    color:#FFFFFF;
+
+    margin-bottom:8px;
+
+    letter-spacing:.5px;
+
+}
+
+.logo span{
+
+    display:block;
+
+    color:var(--green);
+
+    font-size:18px;
+
+    font-weight:600;
+
+    letter-spacing:2px;
+
+    text-transform:uppercase;
+
+}
+
+.logo-line{
+
+    width:80%;
+
+    height:1px;
+
+    margin:28px auto 0;
+
+    background:rgba(255,255,255,.08);
+
+}
+
+/* =====================================================
+   MENU LATERAL
+===================================================== */
+
+.sidebar nav{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+}
+
+.sidebar nav a{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    color:var(--text);
+
+    text-decoration:none;
+
+    padding:16px 20px;
+
+    border-radius:12px;
+
+    transition:var(--transition);
+
+    font-size:17px;
+
+    font-weight:500;
+
+}
+
+.sidebar nav a:hover{
+
+    background:#263449;
+
+    transform:translateX(6px);
+
+}
+
+.sidebar nav a.active{
+
+    background:rgba(34,197,94,.10);
+
+    color:var(--text);
+
+    font-weight:700;
+
+    border-left:4px solid var(--primary);
+
+}
+
+/* =====================================================
+   USUÁRIO LOGADO
+===================================================== */
+
+.user-panel{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    padding:18px;
+
+    margin-bottom:30px;
+
+    background:#263449;
+
+    border-radius:14px;
+
+}
+
+.user-avatar{
+
+    font-size:42px;
+
+    color:var(--primary);
+
+}
+
+.user-info{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.user-info strong{
+
+    color:#FFFFFF;
+
+    font-size:16px;
+
+    font-weight:700;
+
+}
+
+.user-info small{
+
+    color:#9CA3AF;
+
+    font-size:13px;
+
+    margin-top:2px;
+
+}
+
+/* =====================================================
+   RODAPÉ SIDEBAR
+===================================================== */
+
+.sidebar-footer{
+
+    margin-top:auto;
+
+    padding-top:30px;
+
+}
+
+.logout-link{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    color:#ef4444;
+
+    text-decoration:none;
+
+    padding:16px 20px;
+
+    border-radius:12px;
+
+    transition:var(--transition);
+
+    font-size:17px;
+
+    font-weight:500;
+
+}
+
+.logout-link:hover{
+
+    background:rgba(239,68,68,.12);
+
+    transform:translateX(6px);
+
+}
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+.dashboard{
+
+    width:100%;
+
+}
+
+.dashboard h1{
+
+    font-size:34px;
+
+    margin-bottom:35px;
+
+}
+
+.dashboard-grid{
+
+    display:grid;
+
+}
+
+/* =====================================================
+   DASHBOARD GRID
+===================================================== */
+
+.dashboard-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit, minmax(260px,1fr));
+
+    gap:24px;
+
+}
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.card{
+
+    background:var(--card);
+
+    border-radius:18px;
+
+    padding:30px;
+
+    border:1px solid rgba(255,255,255,.05);
+
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+
+    transition:all var(--transition);
+
+}
+
+.card:hover{
+
+    transform:translateY(-6px);
+
+    border-color:rgba(34,197,94,.45);
+
+    box-shadow:0 18px 40px rgba(0,0,0,.35);
+
+}
+
+.card-icon{
+
+    font-size:42px;
+
+    color:var(--green);
+
+    margin-bottom:18px;
+
+}
+
+.card-title{
+
+    font-size:18px;
+
+    color:var(--text-secondary);
+
+    margin-bottom:10px;
+
+}
+
+.card-value{
+
+    font-size:28px;
+
+    font-weight:bold;
+
+}
+
+.card-subtitle{
+
+    margin-top:12px;
+
+    color:var(--text-secondary);
+
+    font-size:14px;
+
+}
+
+/* =====================================================
+   PAGE HEADER
+===================================================== */
+
+.topbar{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    margin-bottom:40px;
+
+}
+
+.page-title h1{
+
+    font-size:56px;
+
+    font-weight:700;
+
+    margin:0;
+
+}
+
+.page-title p{
+
+    margin-top:10px;
+
+    font-size:22px;
+
+    color:var(--text-secondary);
+
+}
+
+.system-status{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:flex-end;
+
+    gap:8px;
+
+}
+
+.status-online{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    background:#1E293B;
+
+    padding:10px 18px;
+
+    border-radius:30px;
+
+    font-weight:600;
+
+}
+
+.status-dot{
+
+    width:10px;
+
+    height:10px;
+
+    background:#22C55E;
+
+    border-radius:50%;
+
+}
+
+/* =====================================================
+   OPERATOR
+===================================================== */
+
+.camera-preview{
+
+    background:#000;
+
+    width:100%;
+
+    height:600px;
+
+    border-radius:20px;
+
+    border:2px solid #293548;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    overflow:hidden;
+
+}
+
+.camera-placeholder{
+
+    text-align:center;
+
+}
+
+.camera-placeholder i{
+
+    font-size:80px;
+
+    color:var(--primary);
+
+    margin-bottom:20px;
+
+}
+
+.camera-placeholder h2{
+
+    font-size:34px;
+
+    margin-bottom:12px;
+
+}
+
+.camera-placeholder p{
+
+    color:var(--text-secondary);
+
+    font-size:18px;
+
+}
+
+/* =====================================================
+   CONTROLES
+===================================================== */
+
+.controls{
+
+    display:flex;
+
+    gap:18px;
+
+    margin-top:35px;
+
+    margin-bottom:30px;
+
+}
+
+.control-btn{
+
+    flex:1;
+
+    height:95px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:18px;
+
+    background:#1E293B;
+
+    color:#FFFFFF;
+
+    border:none;
+
+    border-radius:16px;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.control-btn i{
+
+    font-size:34px;
+
+}
+
+.control-btn:hover{
+
+    background:#22C55E;
+
+    color:#0F172A;
+
+    transform:translateY(-3px);
+
+    box-shadow:0 10px 25px rgba(34,197,94,.35);
+
+}
+
+.control-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:14px;
+
+}
+
+.control-btn div{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+}
+
+.control-btn strong{
+
+    font-size:18px;
+
+    font-weight:700;
+
+}
+
+.control-btn small{
+
+    margin-top:6px;
+
+    font-size:13px;
+
+    color:#94A3B8;
+
+}
+
+.control-btn.primary{
+
+    background:#22C55E;
+
+    color:#0F172A;
+
+}
+
+.control-btn.pause{
+
+    background:#F59E0B;
+
+    color:#FFFFFF;
+
+}
+
+.control-btn.photo{
+
+    background:#2563EB;
+
+    color:#FFFFFF;
+
+}
+
+.control-btn.save{
+
+    background:#7C3AED;
+
+    color:#FFFFFF;
+
+}
+
+.control-btn.settings{
+
+    background:#374151;
+
+    color:#FFFFFF;
+
+}
+
+.control-btn.primary small{
+
+    color:#14532D;
+
+}
+
+.control-btn.primary:hover{
+
+    background:#16A34A;
+
+}
+
+.camera-stream{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    border-radius:18px;
+}
+
+.camera-preview{
+    width:100%;
+    height:540px;
+    background:#000;
+    border-radius:20px;
+    overflow:hidden;
+    border:2px solid #334155;
+}
+
+/* =====================================================
+   ALUGUÉIS
+===================================================== */
+
+.rentals-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+/* =====================================================
+   CARD DE ALUGUEL
+===================================================== */
+
+.rental-card {
+    width: 100%;
+    min-width: 0;
+    min-height: 390px;
+
+    padding: 22px;
+    box-sizing: border-box;
+
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 18px;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+}
+
+/* =====================================================
+   CABEÇALHO
+===================================================== */
+
+.rental-header {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* Área do nome + quadra */
+
+.rental-title {
+    flex: 1;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.rental-title h3 {
+    margin: 0;
+
+    font-size: 24px;
+    font-weight: 700;
+    color: #FFFFFF;
+
+    /* impede nome de sair do card */
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.court {
+    display: block;
+
+    font-size: 16px;
+    color: #94A3B8;
+    font-weight: 500;
+
+    overflow-wrap: anywhere;
+}
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.rental-header .status {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* =====================================================
+   INFORMAÇÕES
+===================================================== */
+
+.rental-info {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    margin-bottom: 20px;
+}
+
+.info-item {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    font-size: 16px;
+    font-weight: 600;
+    color: #FFFFFF;
+}
+
+.info-item i {
+    flex-shrink: 0;
+
+    font-size: 22px;
+    color: #2563EB;
+}
+
+.info-item span {
+    min-width: 0;
+
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: fit-content;
+
+    padding: 8px 0;
+
+    border-radius: 999px;
+
+    font-size: 13px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+    letter-spacing: .8px;
+
+    box-sizing: border-box;
+}
+
+
+/* AGENDADO */
+
+.status.agendado,
+.status.scheduled {
+
+    background: transparent;
+
+    color: #F97316;
+
+}
+
+
+/* EM ANDAMENTO */
+
+.status.em-andamento,
+.status.running {
+
+    background: transparent;
+
+    color: #22C55E;
+
+}
+
+
+/* FINALIZADO */
+
+.status.finalizado,
+.status.finished {
+
+    background: transparent;
+
+    color: #94A3B8;
+
+}
+
+
+/* CANCELADO */
+
+.status.cancelado {
+
+    background: transparent;
+
+    color: #EF4444;
+
+}
+
+
+/* =====================================================
+   BOTÕES
+===================================================== */
+
+.rental-actions {
+
+    width: 100%;
+    min-width: 0;
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 10px;
+
+    margin-top: auto;
+
+}
+
+
+/* FAZ OS FORMS OCUPAREM O MESMO ESPAÇO */
+
+.rental-actions form {
+
+    width: 100%;
+
+}
+
+
+/* BOTÕES E WHATSAPP */
+
+.rental-actions button,
+.rental-actions .btn-whatsapp {
+
+    width: 100%;
+
+    height: 50px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    padding: 0 12px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 6px;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition: .2s;
+
+    box-sizing: border-box;
+
+    white-space: nowrap;
+
+}
+
+
+/* EFEITO AO PASSAR O MOUSE */
+
+.rental-actions button:hover,
+.rental-actions .btn-whatsapp:hover {
+
+    transform: translateY(-2px);
+
+}
+
+
+/* INICIAR */
+
+.btn-start {
+
+    background: #22C55E;
+
+    color: #FFFFFF;
+
+}
+
+
+/* EDITAR */
+
+.btn-edit {
+
+    background: #FACC15;
+
+    color: #111827;
+
+}
+
+
+/* CANCELAR */
+
+.btn-cancel {
+
+    background: #EF4444;
+
+    color: #FFFFFF;
+
+}
+
+
+/* FINALIZAR */
+
+.btn-finish {
+
+    background: #EF4444;
+
+    color: #FFFFFF;
+
+}
+
+
+/* WHATSAPP */
+
+.btn-whatsapp {
+
+    background: #2563EB;
+
+    color: #FFFFFF;
+
+}
+
+
+/* TEMPO EXTRA */
+
+.btn-extra {
+
+    background: #F97316;
+
+    color: #FFFFFF;
+
+}
+
+
+/* REMOVER */
+
+.btn-delete {
+
+    background: #6B7280;
+
+    color: #FFFFFF;
+
+}
+
+
+/* =====================================================
+   RESPONSIVIDADE
+===================================================== */
+
+@media (max-width: 1100px) {
+
+    .rentals-list {
+
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    }
+
+}
+
+
+@media (max-width: 700px) {
+
+    .rentals-list {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .rental-card {
+
+        min-height: auto;
+
+    }
+
+    .rental-header {
+
+        flex-direction: column;
+
+    }
+
+    .rental-header .status {
+
+        align-self: flex-start;
+
+    }
+
+}
+
+/* =====================================================
+   RESPONSIVIDADE
+===================================================== */
+
+@media (max-width: 1100px) {
+
+    .rentals-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+@media (max-width: 700px) {
+
+    .rentals-list {
+        grid-template-columns: 1fr;
+    }
+
+    .rental-card {
+        min-height: auto;
+    }
+
+    .rental-header {
+        flex-direction: column;
+    }
+
+    .rental-header .status {
+        align-self: flex-start;
+    }
+
+}
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.modal{
+
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.45);
+
+    z-index:9999;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+.modal.show{
+
+    display:flex;
+
+}
+
+.modal-content{
+
+    width:700px;
+
+    max-width:95%;
+
+    background:white;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    animation:modalOpen .25s ease;
+
+}
+
+@keyframes modalOpen{
+
+    from{
+
+        transform:translateY(-20px);
+
+        opacity:0;
+
+    }
+
+    to{
+
+        transform:translateY(0);
+
+        opacity:1;
+
+    }
+
+}
+
+.modal-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:20px 30px;
+
+    border-bottom:1px solid #ececec;
+
+}
+
+.modal-header h2{
+
+    margin:0;
+
+}
+
+.close-modal{
+
+    font-size:32px;
+
+    cursor:pointer;
+
+    user-select:none;
+
+}
+
+.modal-body{
+
+    padding:30px;
+
+}
+
+.form-group{
+
+    display:flex;
+
+    flex-direction:column;
+
+    margin-bottom:20px;
+
+}
+
+.form-group label{
+    margin-bottom:8px;
+    font-weight:600;
+    color:#111827;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    font-size:15px;
+    color:#111827;
+    background:#FFFFFF;
+}
+
+.form-row{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr 1fr;
+
+    gap:20px;
+
+}
+
+.modal-footer{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:12px;
+
+    padding:20px 30px;
+
+    border-top:1px solid #ececec;
+
+}
+
+.rental-actions form {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    min-width: 0;
+}
+
+.rental-actions a {
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.rental-actions button,
+.rental-actions a {
+    max-width: 100%;
+}
+
+.rental-info,
+.rental-actions,
+.rental-header,
+.rental-title {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+/* =========================================
+   BOTÃO NOVO ALUGUEL
+   ========================================= */
+
+.new-rental-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 14px 24px;
+
+    border: none;
+    border-radius: 14px;
+
+    background: #22C55E;
+    color: #FFFFFF;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.20);
+
+    transition: 0.2s;
+}
+
+.new-rental-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(34, 197, 94, 0.30);
+}
+
+.btn-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 12px 22px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: #2563EB;
+    color: #FFFFFF;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    text-decoration: none;
+
+    cursor: pointer;
+    transition: .2s;
+
+    box-sizing: border-box;
+}
+
+.btn-whatsapp:hover {
+    background: #1D4ED8;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, .30);
+}
+
+.rental-date {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.rental-date .weekday {
+    font-weight: 700;
+}
+
+.rental-date .formatted-date {
+    font-size: 0.9rem;
+}

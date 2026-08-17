@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block title %}
+Aluguéis
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <div class="topbar">
+
+        <div class="page-title">
+            <h1>Aluguéis</h1>
+            <p>Central de Operação da Arena</p>
+        </div>
+
+        <button class="new-rental-btn">
+            <i class="bi bi-plus-circle"></i>
+            Novo Aluguel
+        </button>
+
+    </div>
+
+    <div class="rentals-list">
+
+        {% for rental in rentals %}
+
+            {% include "components/rental_card.html" %}
+
+        {% else %}
+
+            <div class="empty-state">
+
+                <h3>Nenhum aluguel cadastrado</h3>
+
+                <p>
+                    Clique em <strong>Novo Aluguel</strong>
+                    para criar o primeiro.
+                </p>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+
+<!-- ======================================================
+MODAL NOVO ALUGUEL
+====================================================== -->
+
+<div id="rentalModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Novo Aluguel</h2>
+
+            <span class="close-modal">&times;</span>
+
+        </div>
+
+
+        <form action="/rentals/create" method="POST">
+
+            <input
+                type="hidden"
+                id="rental_id"
+                name="rental_id"
+            >
+
+
+            <div class="modal-body">
+
+
+                <!-- CLIENTE -->
+
+                <div class="form-group">
+
+                    <label>Cliente</label>
+
+                    <input
+                        type="text"
+                        id="customer_name"
+                        name="customer_name"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- TELEFONE -->
+
+                <div class="form-group">
+
+                    <label>Telefone</label>
+
+                    <input
+                        type="text"
+                        id="phone"
+                        name="phone"
+                    >
+
+                </div>
+
+
+                <!-- ESPAÇO -->
+
+                <div class="form-group">
+
+                    <label>Espaço</label>
+
+                    <select
+                        id="court"
+                        name="court"
+                    >
+
+                        <option value="Quadra 1">
+                            🏖 Quadra 1
+                        </option>
+
+                        <option value="Ping Pong 1">
+                            🏓 Ping Pong 1
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- DATA / HORÁRIO / DURAÇÃO -->
+
+                <div class="form-row">
+
+
+                    <!-- DATA -->
+
+                    <div class="form-group">
+
+                        <label>Data</label>
+
+                        <input
+                            type="date"
+                            id="scheduled_date"
+                            name="scheduled_date"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- HORÁRIO -->
+
+                    <div class="form-group">
+
+                        <label>Horário</label>
+
+                        <input
+                            type="time"
+                            id="scheduled_time"
+                            name="scheduled_time"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- DURAÇÃO -->
+
+                    <div class="form-group">
+
+                        <label>Duração</label>
+
+                        <select
+                            id="duration"
+                            name="duration"
+                            required
+                        >
+
+                            <option value="30">
+                                30 minutos
+                            </option>
+
+                            <option value="60">
+                                1 hora
+                            </option>
+
+                            <option value="90">
+                                1 hora e 30 minutos
+                            </option>
+
+                            <option value="120">
+                                2 horas
+                            </option>
+
+                            <option value="150">
+                                2 horas e 30 minutos
+                            </option>
+
+                            <option value="180">
+                                3 horas
+                            </option>
+
+                            <option value="210">
+                                3 horas e 30 minutos
+                            </option>
+
+                            <option value="240">
+                                4 horas
+                            </option>
+
+                            <option value="270">
+                                4 horas e 30 minutos
+                            </option>
+
+                            <option value="300">
+                                5 horas
+                            </option>
+
+                            <option value="330">
+                                5 horas e 30 minutos
+                            </option>
+
+                            <option value="360">
+                                6 horas
+                            </option>
+
+                            <option value="390">
+                                6 horas e 30 minutos
+                            </option>
+
+                            <option value="420">
+                                7 horas
+                            </option>
+
+                            <option value="450">
+                                7 horas e 30 minutos
+                            </option>
+
+                            <option value="480">
+                                8 horas
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <!-- OBSERVAÇÕES -->
+
+                <div class="form-group">
+
+                    <label>Observações</label>
+
+                    <textarea
+                        id="notes"
+                        name="notes"
+                        rows="4"
+                    ></textarea>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- BOTÕES -->
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn-edit"
+                    id="cancelRental"
+                >
+
+                    Cancelar
+
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="btn-start"
+                    id="saveRental"
+                >
+
+                    Salvar Aluguel
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- ======================================================
+MODAL TEMPO EXTRA
+====================================================== -->
+
+<div id="extraTimeModal" class="modal">
+
+    <div class="modal-content small-modal">
+
+        <div class="modal-header">
+
+            <h2>Adicionar Tempo</h2>
+
+            <span
+                class="close-modal"
+                id="closeExtraTime"
+            >&times;</span>
+
+        </div>
+
+
+        <form
+            id="extraTimeForm"
+            action="/rentals/add-time"
+            method="POST"
+        >
+
+            <div class="modal-body">
+
+                <input
+                    type="hidden"
+                    id="extraRentalId"
+                    name="rental_id"
+                >
+
+
+                <div class="form-group">
+
+                    <label>Tempo adicional</label>
+
+                    <select
+                        id="extraDuration"
+                        name="extra_duration"
+                    >
+
+                        <option value="30">
+                            +30 minutos
+                        </option>
+
+                        <option value="60">
+                            +1 hora
+                        </option>
+
+                        <option value="90">
+                            +1 hora e 30 minutos
+                        </option>
+
+                        <option value="120">
+                            +2 horas
+                        </option>
+
+                        <option value="150">
+                            +2 horas e 30 minutos
+                        </option>
+
+                        <option value="180">
+                            +3 horas
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn-edit"
+                    id="cancelExtraTime"
+                >
+
+                    Cancelar
+
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="btn-start"
+                >
+
+                    Adicionar
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script src="{{ url_for('static', filename='js/rentals.js') }}"></script>
+
+{% endblock %}

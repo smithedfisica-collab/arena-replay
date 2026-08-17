@@ -1,0 +1,98 @@
+{% set pagina = request.endpoint %}
+
+<aside class="sidebar">
+
+    <div class="logo">
+
+        <div class="logo-icon">
+            🎾
+        </div>
+
+        <h1>Arena Raízes</h1>
+
+        <span>Replay System</span>
+
+        <div class="logo-line"></div>
+
+    </div>
+
+    <!-- Usuário logado -->
+
+    <div class="user-panel">
+
+        <div class="user-avatar">
+            <i class="bi bi-person-circle"></i>
+        </div>
+
+        <div class="user-info">
+
+            <strong>{{ session.get("user", "Usuário") }}</strong>
+
+            <small>{{ session.get("role", "") }}</small>
+
+        </div>
+
+    </div>
+
+    <nav>
+
+        <a href="/dashboard"
+   class="{% if pagina == 'dashboard.dashboard' %}active{% endif %}">
+
+            <i class="bi bi-speedometer2"></i>
+
+            <span>Dashboard</span>
+
+        </a>
+
+        <a href="/operator"
+   class="{% if pagina == 'operator.operator' %}active{% endif %}">
+
+            <i class="bi bi-camera-video"></i>
+
+            <span>Operador</span>
+
+        </a>
+
+<a href="/rentals"
+   class="{% if pagina == 'rentals.rentals' %}active{% endif %}">
+
+    <i class="bi bi-calendar2-week"></i>
+
+    <span>Aluguéis</span>
+
+</a>
+
+        <a href="/gallery"
+   class="{% if pagina == 'gallery.gallery' %}active{% endif %}">
+
+            <i class="bi bi-images"></i>
+
+            <span>Galeria</span>
+
+        </a>
+
+        <a href="/admin"
+   class="{% if pagina == 'admin.admin' %}active{% endif %}">
+
+            <i class="bi bi-gear"></i>
+
+            <span>Administração</span>
+
+        </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+
+    <a href="/logout" class="logout-link">
+
+        <i class="bi bi-box-arrow-right"></i>
+
+        <span>Sair</span>
+
+    </a>
+
+</div>
+
+</aside>

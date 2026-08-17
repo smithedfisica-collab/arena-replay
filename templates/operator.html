@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}
+Operador
+{% endblock %}
+
+{% block content %}
+
+<div class="operator">
+
+    <div class="topbar">
+
+        <div class="page-title">
+
+            <h1>Operador</h1>
+
+            <p>Central de Replay em Tempo Real</p>
+
+        </div>
+
+        <div class="system-status">
+
+            <div class="status-online">
+
+                <span class="status-dot"></span>
+
+                Sistema Online
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="camera-preview">
+
+    <img
+    id="cameraFeed"
+    src="{{ url_for('api.video_feed') }}"
+    class="camera-stream"
+    alt="Câmera">
+
+</div>
+
+    <div class="controls">
+
+        <button class="control-btn primary" id="btnReplay">
+
+            <i class="bi bi-arrow-counterclockwise"></i>
+
+            <div>
+
+                <strong>Replay</strong>
+
+                <small>F1</small>
+
+            </div>
+
+        </button>
+
+        <button class="control-btn pause">
+
+            <i class="bi bi-pause-fill"></i>
+
+            <div>
+
+                <strong>Pausar</strong>
+
+                <small>F2</small>
+
+            </div>
+
+        </button>
+
+        <button class="control-btn photo">
+
+            <i class="bi bi-camera-fill"></i>
+
+            <div>
+
+                <strong>Foto</strong>
+
+                <small>F3</small>
+
+            </div>
+
+        </button>
+
+        <button class="control-btn save">
+
+            <i class="bi bi-download"></i>
+
+            <div>
+
+                <strong>Salvar</strong>
+
+                <small>F4</small>
+
+            </div>
+
+        </button>
+
+        <button class="control-btn settings">
+
+            <i class="bi bi-gear-fill"></i>
+
+            <div>
+
+                <strong>Configurações</strong>
+
+                <small>F5</small>
+
+            </div>
+
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+document.getElementById("btnReplay").addEventListener("click", async () => {
+
+    const resposta = await fetch("{{ url_for('api.save_current_replay') }}");
+
+    const texto = await resposta.text();
+
+    console.log(texto);
+
+    alert("Replay salvo com sucesso!");
+
+});
+
+</script>
+
+{% endblock %}
