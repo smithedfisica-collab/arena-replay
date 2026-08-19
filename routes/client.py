@@ -32,7 +32,7 @@ def create_session():
 
     <p>
     Link:<br>
-    https://replay.arenaraizes.com.br/r/{token}
+    https://arenaraizes.com.br/r/{token}
 </p>
     """
 

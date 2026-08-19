@@ -136,8 +136,8 @@
                     href="https://wa.me/{{ rental['phone']|replace('(', '')|replace(')', '')|replace(' ', '')|replace('-', '') }}?text={{
                         (
                             'Arena Raízes\n\n'
-                            ~ 'Olá, ' ~ rental['customer_name'] ~ '! 👋\n\n'
-                            ~ 'Sua reserva foi confirmada com sucesso! 🎉\n\n'
+                            ~ 'Olá, ' ~ rental['customer_name'] ~ '! 👋😊\n\n'
+                            ~ 'Sua reserva foi confirmada com sucesso! ✅\n\n'
                             ~ '📅 Data: '
                             ~ rental['scheduled_date'][8:10]
                             ~ '/'
@@ -150,7 +150,7 @@
                             ~ rental['scheduled_time']
                             ~ '\n'
 
-                            ~ 'Espaço: '
+                            ~ '📍Espaço: '
                             ~ rental['court']
                             ~ '\n'
 
@@ -160,15 +160,16 @@
 
                             ~ '🎥 Você poderá acompanhar o Replay da sua partida pelo link abaixo.\n\n'
 
-                            ~ '🔗 https://replay.arenaraizes.com.br/r/'
+                            ~ '🔗 https://arenaraizes.com.br/r/'
                             ~ rental['public_token']
                             ~ '\n\n'
 
                             ~ '⏳ O Replay será ativado automaticamente quando sua partida for iniciada pela nossa equipe.\n\n'
 
-                            ~ 'Esperamos você na Arena Raízes! 💚\n'
+~ '⚠️ Pedimos que chegue com 5 minutinhos de antecedência para ajudar na organização. \n\n'
 
-                            ~ 'Bom jogo!'
+
+                            ~ 'Esperamos você na Arena Raízes! 💚\n' 'Bom jogo!'
                         )|urlencode
                     }}"
 
