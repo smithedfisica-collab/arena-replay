@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 
 from config import SECRET_KEY, SESSION_HOURS
 
-from database.init_database import init_database
+from database.init_db import init_database
 
 from routes.dashboard import dashboard_bp
 from routes.operator import operator_bp
