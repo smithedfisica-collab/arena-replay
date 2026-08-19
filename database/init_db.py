@@ -4,9 +4,9 @@ from database.database import get_connection
 def init_db():
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
+    # Cria a tabela caso ela ainda não exista
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS rentals (
 
@@ -39,8 +39,32 @@ def init_db():
         )
     """)
 
-    conn.commit()
+    # Verifica quais colunas já existem na tabela
+    cursor.execute("PRAGMA table_info(rentals)")
+    columns = [column[1] for column in cursor.fetchall()]
 
+    # Adiciona a coluna status caso ela não exista
+    if "status" not in columns:
+        cursor.execute("""
+            ALTER TABLE rentals
+            ADD COLUMN status TEXT DEFAULT 'AGENDADO'
+        """)
+
+    # Adiciona portal_token caso ele não exista
+    if "portal_token" not in columns:
+        cursor.execute("""
+            ALTER TABLE rentals
+            ADD COLUMN portal_token TEXT
+        """)
+
+    # Adiciona extra_duration caso ele não exista
+    if "extra_duration" not in columns:
+        cursor.execute("""
+            ALTER TABLE rentals
+            ADD COLUMN extra_duration INTEGER DEFAULT 0
+        """)
+
+    conn.commit()
     conn.close()
 
 
@@ -48,4 +72,4 @@ if __name__ == "__main__":
 
     init_db()
 
-    print("Banco criado com sucesso!")
+    print("Banco atualizado com sucesso!")
