@@ -1100,13 +1100,77 @@ body{
 }
 
 
-/* REMOVER */
+/* =====================================================
+   REMOVER DA TELA
+===================================================== */
 
 .btn-delete {
 
-    background: #6B7280;
+    width: 100%;
 
-    color: #FFFFFF;
+    min-height: 52px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    background: transparent;
+
+    color: #F87171;
+
+    border: 1px solid #7F1D1D;
+
+    border-radius: 12px;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+}
+
+
+.btn-delete:hover {
+
+    background: rgba(220, 38, 38, 0.12);
+
+    border-color: #EF4444;
+
+    color: #FCA5A5;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 6px 18px
+        rgba(220, 38, 38, 0.15);
+
+}
+
+
+.btn-delete:active {
+
+    transform: translateY(0);
+
+    box-shadow: none;
+
+}
+
+.btn-delete .delete-icon {
+
+    font-size: 18px;
+
+    line-height: 1;
 
 }
 

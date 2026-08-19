@@ -171,10 +171,6 @@
         }
 
 
-        /* ==========================================
-           BOTÃO SOLICITAR REPLAY
-        ========================================== */
-
         .replay-button {
 
             display: none;
@@ -222,10 +218,6 @@
         }
 
 
-        /* ==========================================
-           SEÇÃO DOS REPLAYS
-        ========================================== */
-
         .replays-section {
 
             margin-top: 25px;
@@ -245,10 +237,6 @@
 
         }
 
-
-        /* ==========================================
-           CARD
-        ========================================== */
 
         .replay-card {
 
@@ -288,10 +276,6 @@
 
         }
 
-
-        /* ==========================================
-           MINIATURA
-        ========================================== */
 
         .replay-preview {
 
@@ -364,10 +348,6 @@
 
         }
 
-
-        /* ==========================================
-           BOTÕES
-        ========================================== */
 
         .replay-actions {
 
@@ -453,10 +433,6 @@
         }
 
 
-        /* ==========================================
-           CELULAR
-        ========================================== */
-
         @media (max-width: 430px) {
 
 
@@ -519,10 +495,6 @@
 <div class="container">
 
 
-    <!-- ==========================================
-         LOGO
-    ========================================== -->
-
     <div class="logo">
 
         🎾
@@ -544,10 +516,6 @@
     </div>
 
 
-    <!-- ==========================================
-         CLIENTE
-    ========================================== -->
-
     <div
         class="customer"
         id="customerName"
@@ -557,10 +525,6 @@
 
     </div>
 
-
-    <!-- ==========================================
-         INFORMAÇÕES
-    ========================================== -->
 
     <div class="info">
 
@@ -619,10 +583,6 @@
     </div>
 
 
-    <!-- ==========================================
-         STATUS
-    ========================================== -->
-
     <div
         id="status"
         class="status agendado"
@@ -632,10 +592,6 @@
 
     </div>
 
-
-    <!-- ==========================================
-         MENSAGEM
-    ========================================== -->
 
     <div
         id="message"
@@ -652,10 +608,6 @@
     </div>
 
 
-    <!-- ==========================================
-         BOTÃO SOLICITAR REPLAY
-    ========================================== -->
-
     <button
         id="replayButton"
         class="replay-button"
@@ -667,10 +619,6 @@
     </button>
 
 
-    <!-- ==========================================
-         AVISO
-    ========================================== -->
-
     <div
         class="waiting"
         id="waiting"
@@ -680,10 +628,6 @@
 
     </div>
 
-
-    <!-- ==========================================
-         REPLAYS
-    ========================================== -->
 
     <div
         class="replays-section"
@@ -712,175 +656,88 @@
 <script>
 
 
-// ======================================================
-// TOKEN DA RESERVA
-// ======================================================
-
 const publicToken =
     "{{ rental['public_token'] }}";
 
 
-// ======================================================
-// ELEMENTOS
-// ======================================================
-
 const statusElement =
-    document.getElementById("status");
+    document.getElementById(
+        "status"
+    );
 
 
 const messageElement =
-    document.getElementById("message");
+    document.getElementById(
+        "message"
+    );
 
 
 const replayButton =
-    document.getElementById("replayButton");
+    document.getElementById(
+        "replayButton"
+    );
 
 
 const waitingElement =
-    document.getElementById("waiting");
+    document.getElementById(
+        "waiting"
+    );
 
 
 const replaysSection =
-    document.getElementById("replaysSection");
+    document.getElementById(
+        "replaysSection"
+    );
 
 
 const replaysList =
-    document.getElementById("replaysList");
+    document.getElementById(
+        "replaysList"
+    );
 
 
-// ======================================================
-// FORMATAR HORÁRIO
-// ======================================================
+function formatarData(data) {
 
-function formatarHorario(dataString) {
+    if (!data) {
 
-
-    if (!dataString) {
-
-
-        return "Horário não disponível";
+        return "";
 
     }
 
 
     try {
 
-
-        let dataFormatada =
-
-            dataString
-                .replace(
-                    " ",
-                    "T"
-                );
+        const date =
+            new Date(data);
 
 
-        // ==============================================
-        // SE O HORÁRIO VIER DO SQLITE EM UTC,
-        // ADICIONA O INDICADOR Z.
-        //
-        // O NAVEGADOR CONVERTE AUTOMATICAMENTE
-        // PARA O HORÁRIO LOCAL DO CELULAR.
-        // ==============================================
-
-        if (
-
-            !dataFormatada.endsWith(
-                "Z"
-            )
-
-            &&
-
-            !/[+-]\d{2}:?\d{2}$/.test(
-                dataFormatada
-            )
-
-        ) {
-
-
-            dataFormatada +=
-                "Z";
-
-        }
-
-
-        const data =
-
-            new Date(
-                dataFormatada
-            );
-
-
-        if (
-
-            isNaN(
-                data.getTime()
-            )
-
-        ) {
-
-
-            return dataString;
-
-        }
-
-
-        return data.toLocaleTimeString(
-
-            "pt-BR",
-
-            {
-
-                hour:
-                    "2-digit",
-
-                minute:
-                    "2-digit",
-
-                timeZone:
-                    "America/Belem"
-
-            }
-
+        return date.toLocaleString(
+            "pt-BR"
         );
-
 
     }
 
-
     catch (erro) {
 
-
-        console.error(
-
-            "Erro ao formatar horário:",
-
-            erro
-
-        );
-
-
-        return dataString;
+        return data;
 
     }
 
 }
 
 
-// ======================================================
-// RENDERIZAR REPLAYS
-// ======================================================
-
 function renderizarReplays(replays) {
 
 
-    // --------------------------------------------------
-    // NÃO EXISTEM REPLAYS
-    // --------------------------------------------------
+    replaysList.innerHTML =
+        "";
+
 
     if (
 
-        !replays ||
+        !replays
+
+        ||
 
         replays.length === 0
 
@@ -891,331 +748,142 @@ function renderizarReplays(replays) {
             "none";
 
 
-        replaysList.innerHTML =
-            "";
-
-
         return;
-
 
     }
 
 
-    // --------------------------------------------------
-    // LIMPAR LISTA
-    // --------------------------------------------------
+    replaysSection.style.display =
+        "block";
 
-    replaysList.innerHTML =
-        "";
-
-
-    // --------------------------------------------------
-    // CRIAR CARDS
-    // --------------------------------------------------
 
     replays.forEach(
 
         (replay, index) => {
 
 
-            // ==========================================
-            // URL DO VÍDEO
-            // ==========================================
-
-            const videoUrl =
-                `/replays/${encodeURIComponent(
-                    replay.filename
-                )}`;
-
-
-            // ==========================================
-            // NOME DA MINIATURA
-            //
-            // Exemplo:
-            //
-            // 20260812_092118.mp4
-            //
-            // vira:
-            //
-            // 20260812_092118.jpg
-            // ==========================================
-
-            const thumbnailFilename =
-                replay.filename.replace(
-
-                    /\.mp4$/i,
-
-                    ".jpg"
-
-                );
-
-
-            // ==========================================
-            // URL DA MINIATURA
-            // ==========================================
-
-            const thumbnailUrl =
-                `/replays/thumbnail/${encodeURIComponent(
-                    thumbnailFilename
-                )}`;
-
-
-            // ==========================================
-            // CARD
-            // ==========================================
-
             const card =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
 
             card.className =
                 "replay-card";
 
 
-            // ==========================================
-            // TÍTULO
-            // ==========================================
-
-            const titulo =
-                document.createElement("div");
-
-
-            titulo.className =
-                "replay-card-title";
-
-
-            titulo.innerHTML =
-                `🎬 Replay ${index + 1}`;
-
-
-            // ==========================================
-            // HORÁRIO
-            // ==========================================
-
-            const horario =
-                document.createElement("div");
-
-
-            horario.className =
-                "replay-time";
-
-
-            horario.innerHTML =
-                `🕐 Gravado às <strong>${
-                    formatarHorario(
-                        replay.created_at
-                    )
-                }</strong>`;
-
-
-            // ==========================================
-            // ÁREA DA MINIATURA
-            // ==========================================
-
-            const preview =
-                document.createElement("div");
-
-
-            preview.className =
-                "replay-preview";
-
-
-            // ==========================================
-            // IMAGEM DA MINIATURA
-            // ==========================================
-
-            const thumbnail =
-                document.createElement("img");
-
-
-            thumbnail.className =
-                "replay-thumbnail";
-
-
-            thumbnail.src =
-                thumbnailUrl;
-
-
-            thumbnail.alt =
-                `Replay ${index + 1}`;
-
-
-            // ------------------------------------------
-            // SE A MINIATURA NÃO EXISTIR
-            // ------------------------------------------
-
-            thumbnail.onerror =
-                function () {
-
-
-                    console.error(
-
-                        "Miniatura não encontrada:",
-
-                        thumbnailUrl
-
-                    );
-
-
-                    /*
-                     * Não deixa quebrar o card.
-                     */
-
-                    thumbnail.style.display =
-                        "none";
-
-
-                };
-
-
-            preview.appendChild(
-                thumbnail
-            );
-
-
-            // ==========================================
-            // BOTÃO PLAY
-            // ==========================================
-
-            const playIcon =
-                document.createElement("div");
-
-
-            playIcon.className =
-                "replay-play";
-
-
-            playIcon.innerHTML =
-                "▶";
-
-
-            preview.appendChild(
-                playIcon
-            );
-
-
-            // ==========================================
-            // CLICAR NA MINIATURA
-            // ==========================================
-
-            preview.addEventListener(
-
-                "click",
-
-                () => {
-
-
-                    window.open(
-
-                        videoUrl,
-
-                        "_blank"
-
-                    );
-
-
-                }
-
-            );
-
-
-            // ==========================================
-            // ÁREA DOS BOTÕES
-            // ==========================================
-
-            const actions =
-                document.createElement("div");
-
-
-            actions.className =
-                "replay-actions";
-
-
-            // ==========================================
-            // ASSISTIR
-            // ==========================================
-
-            const assistir =
-                document.createElement("a");
-
-
-            assistir.href =
-                videoUrl;
-
-
-            assistir.target =
-                "_blank";
-
-
-            assistir.rel =
-                "noopener";
-
-
-            assistir.className =
-                "watch-replay";
-
-
-            assistir.innerHTML =
-                "▶️ ASSISTIR";
-
-
-            // ==========================================
-            // BAIXAR
-            // ==========================================
-
-            const baixar =
-                document.createElement("a");
-
-
-            baixar.href =
-                videoUrl;
-
-
-            baixar.download =
+            const filename =
                 replay.filename;
 
 
-            baixar.className =
-                "download-replay";
+            const videoUrl =
+                `/replays/${encodeURIComponent(
+                    filename
+                )}`;
 
 
-            baixar.innerHTML =
-                "⬇️ BAIXAR";
+            card.innerHTML = `
+
+                <div class="replay-card-title">
+
+                    Replay ${index + 1}
+
+                </div>
 
 
-            // ==========================================
-            // COMPARTILHAR
-            // ==========================================
+                <div class="replay-time">
 
-            const compartilhar =
-                document.createElement("button");
+                    ${formatarData(
+                        replay.created_at
+                    )}
 
-
-            compartilhar.type =
-                "button";
+                </div>
 
 
-            compartilhar.className =
-                "share-replay";
+                <div
+                    class="replay-preview"
+                    onclick="
+                        window.open(
+                            '${videoUrl}',
+                            '_blank'
+                        )
+                    "
+                >
+
+                    <video
+                        class="replay-thumbnail"
+                        src="${videoUrl}#t=0.1"
+                        muted
+                        preload="metadata"
+                    ></video>
 
 
-            compartilhar.innerHTML =
-                "📱 COMPARTILHAR";
+                    <div class="replay-play">
+
+                        ▶
+
+                    </div>
+
+                </div>
 
 
-            // ==========================================
-            // MENSAGEM
-            // ==========================================
-
-            const mensagem =
-                document.createElement("div");
+                <div class="replay-actions">
 
 
-            mensagem.className =
-                "share-message";
+                    <a
+                        href="${videoUrl}"
+                        target="_blank"
+                        class="watch-replay"
+                    >
+
+                        ▶ ASSISTIR
+
+                    </a>
 
 
-            compartilhar.addEventListener(
+                    <a
+                        href="${videoUrl}"
+                        download="${filename}"
+                        class="download-replay"
+                    >
+
+                        ⬇ BAIXAR
+
+                    </a>
+
+
+                    <button
+                        class="share-replay"
+                    >
+
+                        📤 COMPARTILHAR
+
+                    </button>
+
+
+                </div>
+
+
+                <div
+                    class="share-message"
+                ></div>
+
+            `;
+
+
+            const shareButton =
+                card.querySelector(
+                    ".share-replay"
+                );
+
+
+            const shareMessage =
+                card.querySelector(
+                    ".share-message"
+                );
+
+
+            shareButton.addEventListener(
 
                 "click",
 
@@ -1224,65 +892,16 @@ function renderizarReplays(replays) {
 
                     compartilharReplay(
 
-                        replay.filename,
+                        filename,
 
-                        compartilhar,
+                        shareButton,
 
-                        mensagem
+                        shareMessage
 
                     );
 
-
                 }
 
-            );
-
-
-            // ==========================================
-            // ADICIONAR BOTÕES
-            // ==========================================
-
-            actions.appendChild(
-                assistir
-            );
-
-
-            actions.appendChild(
-                baixar
-            );
-
-
-            actions.appendChild(
-                compartilhar
-            );
-
-
-            // ==========================================
-            // MONTAR CARD
-            // ==========================================
-
-            card.appendChild(
-                titulo
-            );
-
-
-            card.appendChild(
-                horario
-            );
-
-
-            card.appendChild(
-                preview
-            );
-
-
-            card.appendChild(
-                actions
-            );
-
-
-            card.appendChild(
-                mensagem
             );
 
 
@@ -1296,20 +915,8 @@ function renderizarReplays(replays) {
     );
 
 
-    // --------------------------------------------------
-    // MOSTRAR SEÇÃO
-    // --------------------------------------------------
-
-    replaysSection.style.display =
-        "block";
-
-
 }
 
-
-// ======================================================
-// ATUALIZAR TELA
-// ======================================================
 
 function atualizarTela(rental) {
 
@@ -1318,11 +925,11 @@ function atualizarTela(rental) {
         rental.status;
 
 
-    // ==================================================
-    // AGENDADO
-    // ==================================================
+    if (
 
-    if (status === "AGENDADO") {
+        status === "AGENDADO"
+
+    ) {
 
 
         statusElement.innerText =
@@ -1360,10 +967,6 @@ function atualizarTela(rental) {
     }
 
 
-    // ==================================================
-    // EM ANDAMENTO
-    // ==================================================
-
     else if (
 
         status === "EM ANDAMENTO"
@@ -1395,12 +998,12 @@ function atualizarTela(rental) {
             "block";
 
 
-        replayButton.disabled =
-            false;
+        if (!replayButton.disabled) {
 
+            replayButton.innerText =
+                "🎬 SOLICITAR REPLAY";
 
-        replayButton.innerText =
-            "🎬 SOLICITAR REPLAY";
+        }
 
 
         waitingElement.style.display =
@@ -1411,8 +1014,6 @@ function atualizarTela(rental) {
             "O status é atualizado automaticamente.";
 
 
-        // Se já houver replay
-
         renderizarReplays(
             rental.replays
         );
@@ -1420,10 +1021,6 @@ function atualizarTela(rental) {
 
     }
 
-
-    // ==================================================
-    // CANCELADO
-    // ==================================================
 
     else if (
 
@@ -1467,10 +1064,6 @@ function atualizarTela(rental) {
 
     }
 
-
-    // ==================================================
-    // FINALIZADO
-    // ==================================================
 
     else if (
 
@@ -1518,10 +1111,6 @@ function atualizarTela(rental) {
 
 }
 
-
-// ======================================================
-// CONSULTAR STATUS
-// ======================================================
 
 async function verificarStatus() {
 
@@ -1614,15 +1203,35 @@ async function verificarStatus() {
 async function solicitarReplay() {
 
 
+    // Impede apenas clique duplo deste cliente.
+    // Não bloqueia outros clientes, Quadra ou Ping Pong.
+
+    if (
+
+        replayButton.disabled
+
+    ) {
+
+        return;
+
+    }
+
+
     replayButton.disabled =
         true;
 
 
     replayButton.innerText =
-        "⏳ GERANDO REPLAY...";
+        "⏳ PROCESSANDO REPLAY...";
 
 
     try {
+
+
+        const quantidadeAntes =
+            document.querySelectorAll(
+                ".replay-card"
+            ).length;
 
 
         const resposta =
@@ -1659,79 +1268,119 @@ async function solicitarReplay() {
             await resposta.json();
 
 
-        // ==================================================
-        // SUCESSO
-        // ==================================================
+        if (
 
-        if (data.success) {
+            !resposta.ok
 
+            ||
 
-            replayButton.innerText =
-                "🎬 REPLAY GERADO!";
+            !data.success
 
-
-            /*
-             * Consulta novamente o servidor.
-             */
-
-            verificarStatus();
+        ) {
 
 
-            setTimeout(
+            throw new Error(
 
-                verificarStatus,
+                data.message
 
-                500
+                ||
+
+                "Não foi possível solicitar o replay."
 
             );
-
-
-            setTimeout(
-
-                verificarStatus,
-
-                1500
-
-            );
-
-
-            setTimeout(
-
-                verificarStatus,
-
-                3000
-
-            );
-
 
         }
 
 
-        // ==================================================
-        // ERRO
-        // ==================================================
-
-        else {
+        replayButton.innerText =
+            "🎬 GERANDO REPLAY...";
 
 
-            replayButton.disabled =
-                false;
+        let tentativas =
+            0;
 
 
-            replayButton.innerText =
-                "🎬 SOLICITAR REPLAY";
+        const maxTentativas =
+            60;
 
 
-            alert(
-
-                data.message ||
-
-                "Não foi possível gerar o replay."
-
-            );
+        const acompanhar =
+            async () => {
 
 
-        }
+                tentativas += 1;
+
+
+                await verificarStatus();
+
+
+                const quantidadeAgora =
+                    document.querySelectorAll(
+                        ".replay-card"
+                    ).length;
+
+
+                if (
+
+                    quantidadeAgora >
+                    quantidadeAntes
+
+                ) {
+
+
+                    replayButton.innerText =
+                        "🎬 SOLICITAR REPLAY";
+
+
+                    replayButton.disabled =
+                        false;
+
+
+                    return;
+
+                }
+
+
+                if (
+
+                    tentativas >=
+                    maxTentativas
+
+                ) {
+
+
+                    replayButton.innerText =
+                        "🎬 SOLICITAR REPLAY";
+
+
+                    replayButton.disabled =
+                        false;
+
+
+                    return;
+
+                }
+
+
+                setTimeout(
+
+                    acompanhar,
+
+                    1000
+
+                );
+
+
+            };
+
+
+        setTimeout(
+
+            acompanhar,
+
+            1000
+
+        );
 
 
     }
@@ -1748,17 +1397,21 @@ async function solicitarReplay() {
         );
 
 
-        replayButton.disabled =
-            false;
-
-
         replayButton.innerText =
             "🎬 SOLICITAR REPLAY";
 
 
+        replayButton.disabled =
+            false;
+
+
         alert(
 
-            "Não foi possível solicitar o replay."
+            erro.message
+
+            ||
+
+            "Ocorreu um erro ao solicitar o replay."
 
         );
 
@@ -1807,13 +1460,11 @@ async function compartilharReplay(
             ).href;
 
 
-        // --------------------------------------------------
-        // VERIFICAR SUPORTE
-        // --------------------------------------------------
-
         if (
 
-            !navigator.share ||
+            !navigator.share
+
+            ||
 
             !navigator.canShare
 
@@ -1829,10 +1480,6 @@ async function compartilharReplay(
 
         }
 
-
-        // --------------------------------------------------
-        // BAIXAR VÍDEO
-        // --------------------------------------------------
 
         const resposta =
             await fetch(
@@ -1857,10 +1504,6 @@ async function compartilharReplay(
             await resposta.blob();
 
 
-        // --------------------------------------------------
-        // CRIAR ARQUIVO
-        // --------------------------------------------------
-
         const arquivo =
             new File(
 
@@ -1876,7 +1519,9 @@ async function compartilharReplay(
 
                     type:
 
-                        blob.type ||
+                        blob.type
+
+                        ||
 
                         "video/mp4"
 
@@ -1884,10 +1529,6 @@ async function compartilharReplay(
 
             );
 
-
-        // --------------------------------------------------
-        // VERIFICAR COMPARTILHAMENTO
-        // --------------------------------------------------
 
         if (
 
@@ -1914,10 +1555,6 @@ async function compartilharReplay(
         mensagem.innerText =
             "Abrindo opções de compartilhamento...";
 
-
-        // --------------------------------------------------
-        // COMPARTILHAR
-        // --------------------------------------------------
 
         await navigator.share({
 
@@ -1958,8 +1595,6 @@ async function compartilharReplay(
 
         );
 
-
-        // Usuário cancelou
 
         if (
 

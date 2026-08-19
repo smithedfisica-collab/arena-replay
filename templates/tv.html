@@ -6,29 +6,9 @@
 
     <img
         id="tvStream"
-        src="{{ url_for('api.video_feed') }}">
+        src="{{ url_for('api.video_feed') }}"
+        alt="Transmissão ao vivo da Quadra 1">
 
 </div>
-
-
-<!-- STATUS DA TV -->
-
-<div id="liveBadge">
-    LIVE
-</div>
-
-
-<!-- OVERLAY DO REPLAY -->
-
-<div id="replayOverlay">
-
-    <div id="countdown">
-        3
-    </div>
-
-</div>
-
-
-<script src="{{ url_for('static', filename='js/tv.js') }}"></script>
 
 {% endblock %}

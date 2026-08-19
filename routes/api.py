@@ -1,16 +1,15 @@
-from flask import Blueprint, Response, jsonify, request
+from flask import Blueprint, jsonify, request
 
 from camera.camera import Camera
 from replay.buffer import ReplayBuffer
 from replay.save_replay import save_replay
-
-from database import tv_state
 from database.database import get_connection
 
 import os
-import cv2
 import time
 import threading
+
+from datetime import datetime, timedelta
 
 
 # ======================================================
@@ -27,58 +26,44 @@ api_bp = Blueprint(
 # CONFIGURAÇÕES
 # ======================================================
 
-# FPS usado para:
-# - transmissão da TV
-# - buffer do replay
-# - arquivo MP4 salvo
-#
-# 15 FPS deixa o sistema bem mais leve e o movimento
-# continua natural para o replay.
+# FPS usado no buffer e no arquivo final.
+# Mantendo os dois iguais, o replay fica na velocidade real.
 FPS = 15
 
 
-# Quantidade de segundos que queremos guardar
+# Quantidade de segundos guardados no buffer.
 BUFFER_SECONDS = 20
 
 
-# Total máximo de frames do replay
+# Quantidade máxima de frames.
 MAX_FRAMES = FPS * BUFFER_SECONDS
 
 
 # ======================================================
-# SISTEMAS DE CÂMERA
+# SISTEMA DE CÂMERA
 # ======================================================
-
-# ------------------------------------------------------
-# QUADRA 1
-# ------------------------------------------------------
-
-# ------------------------------------------------------
-# SISTEMA DE CÂMERAS
-# ------------------------------------------------------
 #
-# Um único objeto Camera controla:
+# NÃO EXISTE MAIS TRANSMISSÃO AO VIVO.
 #
-# - Quadra 1 ao vivo
-# - Quadra 1 replay
-# - Ping Pong 1 replay
-# ------------------------------------------------------
+# A câmera é usada somente para alimentar os buffers
+# de replay da Quadra 1 e do Ping Pong 1.
+# ======================================================
 
 quadra_camera = Camera()
 
 
-# ------------------------------------------------------
+# ======================================================
 # BUFFER DA QUADRA 1
-# ------------------------------------------------------
+# ======================================================
 
 quadra_buffer = ReplayBuffer(
     MAX_FRAMES
 )
 
 
-# ------------------------------------------------------
+# ======================================================
 # BUFFER DO PING PONG 1
-# ------------------------------------------------------
+# ======================================================
 
 pingpong_buffer = ReplayBuffer(
     MAX_FRAMES
@@ -86,7 +71,7 @@ pingpong_buffer = ReplayBuffer(
 
 
 # ======================================================
-# TODOS OS SISTEMAS
+# SISTEMAS DE REPLAY
 # ======================================================
 
 CAMERA_SYSTEMS = {
@@ -101,10 +86,6 @@ CAMERA_SYSTEMS = {
 
     "Ping Pong 1": {
 
-        # Usa o mesmo objeto Camera.
-        #
-        # Dentro dele existe a conexão específica
-        # da câmera do Ping Pong.
         "camera": quadra_camera,
 
         "buffer": pingpong_buffer
@@ -115,16 +96,7 @@ CAMERA_SYSTEMS = {
 
 
 # ======================================================
-# ÚLTIMO FRAME DA CÂMERA
-# ======================================================
-
-latest_frame = None
-
-frame_lock = threading.Lock()
-
-
-# ======================================================
-# CONTROLE DE INÍCIO DA THREAD
+# CONTROLE DE INÍCIO DA THREAD DA CÂMERA
 # ======================================================
 
 camera_thread_started = False
@@ -133,180 +105,235 @@ camera_thread_lock = threading.Lock()
 
 
 # ======================================================
-# CAPTURA CONTÍNUA DA CÂMERA
+# CONTROLE DOS REPLAYS EM PROCESSAMENTO
+# ======================================================
+#
+# Cada replay possui seu próprio status.
+#
+# processing
+# ready
+# error
+#
+# Isso permite que Quadra 1 e Ping Pong 1 processem
+# replays simultaneamente.
 # ======================================================
 
+replay_jobs = {}
+
+replay_jobs_lock = threading.Lock()
+
+
+def set_replay_job(
+
+    job_id,
+
+    status,
+
+    message="",
+
+    filename=None
+
+):
+
+    with replay_jobs_lock:
+
+        replay_jobs[job_id] = {
+
+            "status": status,
+
+            "message": message,
+
+            "filename": filename,
+
+            "updated_at": time.time()
+
+        }
+
+
+        # Mantém somente os 200 jobs mais recentes.
+        if len(replay_jobs) > 200:
+
+            oldest = sorted(
+
+                replay_jobs.items(),
+
+                key=lambda item: item[1].get(
+                    "updated_at",
+                    0
+                )
+
+            )[:-200]
+
+
+            for old_job_id, _ in oldest:
+
+                replay_jobs.pop(
+                    old_job_id,
+                    None
+                )
+
+
+def get_replay_job(
+
+    job_id
+
+):
+
+    with replay_jobs_lock:
+
+        job = replay_jobs.get(
+            job_id
+        )
+
+
+        if job is None:
+
+            return None
+
+
+        return dict(
+            job
+        )
+
+
 # ======================================================
-# CAPTURA CONTÍNUA DAS CÂMERAS
+# CAPTURA CONTÍNUA DOS REPLAYS
+# ======================================================
+#
+# NÃO EXISTE MAIS:
+#
+# camera.get_frame()
+# TV AO VIVO
+# latest_frame
+# video_feed
+#
+# A câmera é acessada somente pelos dois streams
+# de replay.
 # ======================================================
 
 def capture_camera():
 
-    global latest_frame
-
-
     print("=" * 60)
-    print("CAPTURA CONTÍNUA DAS CÂMERAS INICIADA")
-    print("=" * 60)
-
-    print("TV AO VIVO: QUADRA 1")
-    print("REPLAY QUADRA 1: STREAM 2")
-    print("REPLAY PING PONG 1: STREAM 2")
-
+    print("CAPTURA DE REPLAY INICIADA")
+    print("REPLAY QUADRA 1")
+    print("REPLAY PING PONG 1")
+    print("SEM TRANSMISSÃO AO VIVO")
     print("=" * 60)
 
-
-    # ==================================================
-    # OBJETO PRINCIPAL DAS CÂMERAS
-    # ==================================================
 
     camera = quadra_camera
 
 
-    # ==================================================
-    # BUFFERS
-    # ==================================================
-
-    quadra_replay_buffer = quadra_buffer
-
-    pingpong_replay_buffer = pingpong_buffer
-
-
-    # ==================================================
-    # CONTROLE PARA NÃO DUPLICAR FRAMES
-    # ==================================================
-
+    # Controle para não adicionar
+    # o mesmo frame duas vezes.
     last_quadra_sequence = -1
 
     last_pingpong_sequence = -1
+
+
+    # O buffer recebe exatamente FPS frames
+    # por segundo, no máximo.
+    intervalo_frame = 1 / FPS
+
+    next_buffer_time = time.perf_counter()
 
 
     while True:
 
         try:
 
-
-            # ==============================================
-            # AO VIVO DA QUADRA 1
-            #
-            # SOMENTE ESTE FRAME VAI PARA A TV.
-            # ==============================================
-
-            live_frame = camera.get_frame()
+            agora = time.perf_counter()
 
 
-            if live_frame is not None:
-
-                with frame_lock:
-
-                    latest_frame = live_frame
+            if agora >= next_buffer_time:
 
 
-            # ==============================================
-            # REPLAY DA QUADRA 1
-            # ==============================================
+                # ==========================================
+                # REPLAY DA QUADRA 1
+                # ==========================================
 
-            (
-                quadra_replay_frame,
-                quadra_sequence
-
-            ) = camera.get_replay_frame_with_sequence()
-
-
-            if (
-
-                quadra_replay_frame is not None
-
-                and
-
-                quadra_sequence != last_quadra_sequence
-
-            ):
-
-                quadra_replay_buffer.add_frame(
-
-                    quadra_replay_frame
-
-                )
-
-
-                last_quadra_sequence = (
-
+                (
+                    quadra_replay_frame,
                     quadra_sequence
-
-                )
-
-
-            # ==============================================
-            # REPLAY DO PING PONG 1
-            #
-            # NÃO VAI PARA A TV AO VIVO.
-            #
-            # APENAS ALIMENTA O BUFFER DE REPLAY.
-            # ==============================================
-
-            (
-                pingpong_replay_frame,
-                pingpong_sequence
-
-            ) = camera.get_pingpong_frame_with_sequence()
+                ) = camera.get_replay_frame_with_sequence()
 
 
-            if (
+                if (
 
-                pingpong_replay_frame is not None
+                    quadra_replay_frame is not None
 
-                and
+                    and
 
-                pingpong_sequence != last_pingpong_sequence
+                    quadra_sequence != last_quadra_sequence
 
-            ):
+                ):
 
-                pingpong_replay_buffer.add_frame(
-
-                    pingpong_replay_frame
-
-                )
+                    quadra_buffer.add_frame(
+                        quadra_replay_frame
+                    )
 
 
-                last_pingpong_sequence = (
+                    last_quadra_sequence = (
+                        quadra_sequence
+                    )
 
+
+                # ==========================================
+                # REPLAY DO PING PONG 1
+                # ==========================================
+
+                (
+                    pingpong_replay_frame,
                     pingpong_sequence
+                ) = camera.get_pingpong_frame_with_sequence()
 
+
+                if (
+
+                    pingpong_replay_frame is not None
+
+                    and
+
+                    pingpong_sequence != last_pingpong_sequence
+
+                ):
+
+                    pingpong_buffer.add_frame(
+                        pingpong_replay_frame
+                    )
+
+
+                    last_pingpong_sequence = (
+                        pingpong_sequence
+                    )
+
+
+                # Próxima atualização dos buffers.
+                next_buffer_time = (
+                    agora + intervalo_frame
                 )
 
-
-            # ==============================================
-            # PEQUENA PAUSA
-            #
-            # Evita usar 100% da CPU.
-            # ==============================================
 
             time.sleep(
-
                 0.002
-
             )
 
 
         except Exception as e:
 
-
             print("=" * 60)
-            print("ERRO NA CAPTURA DAS CÂMERAS")
+            print("ERRO NA CAPTURA DOS REPLAYS")
             print(e)
             print("=" * 60)
 
 
             time.sleep(
-
                 0.5
-
             )
 
 
 # ======================================================
-# INICIAR CÂMERA UMA ÚNICA VEZ
+# INICIAR THREAD DA CÂMERA
 # ======================================================
 
 def start_camera_thread():
@@ -325,7 +352,9 @@ def start_camera_thread():
 
             target=capture_camera,
 
-            daemon=True
+            daemon=True,
+
+            name="ReplayCapture"
 
         )
 
@@ -337,583 +366,321 @@ def start_camera_thread():
 
 
         print("=" * 60)
-        print("THREAD DA CÂMERA INICIADA")
+        print("THREAD DE CAPTURA DE REPLAY INICIADA")
         print("=" * 60)
 
 
-# Inicia imediatamente
+# ======================================================
+# INICIAR CAPTURA
+# ======================================================
+
 start_camera_thread()
 
 
 # ======================================================
-# OBTER ÚLTIMO FRAME
-# ======================================================
-
-def get_latest_frame():
-
-    global latest_frame
-
-
-    with frame_lock:
-
-        if latest_frame is None:
-
-            return None
-
-
-        return latest_frame.copy()
-
-
-# ======================================================
-# CODIFICAR FRAME PARA JPEG
-# ======================================================
-
-def encode_frame(frame):
-
-    if frame is None:
-
-        return None
-
-
-    success, encoded_frame = cv2.imencode(
-
-        ".jpg",
-
-        frame,
-
-        [
-
-            cv2.IMWRITE_JPEG_QUALITY,
-
-            80
-
-        ]
-
-    )
-
-
-    if not success:
-
-        return None
-
-
-    return encoded_frame.tobytes()
-
-
-# ======================================================
-# ENVIAR FRAME PARA STREAM
-# ======================================================
-
-def stream_frame(frame):
-
-    encoded = encode_frame(
-        frame
-    )
-
-
-    if encoded is None:
-
-        return None
-
-
-    return (
-
-        b"--frame\r\n"
-
-        b"Content-Type: image/jpeg\r\n\r\n"
-
-        +
-
-        encoded
-
-        +
-
-        b"\r\n"
-
-    )
-
-
-# ======================================================
-# TRANSMISSÃO DE FRAMES DA TV
-# ======================================================
-
-def generate_frames():
-
-    # Controle preciso do tempo do stream
-    next_frame_time = time.perf_counter()
-
-
-    while True:
-
-        try:
-
-            # ==================================================
-            # MODO COUNTDOWN
-            # ==================================================
-
-            if tv_state.tv_mode == "countdown":
-
-                elapsed = (
-
-                    time.time()
-
-                    -
-
-                    tv_state.countdown_start
-
-                )
-
-
-                # ----------------------------------------------
-                # TERMINOU O 3, 2, 1
-                # ----------------------------------------------
-
-                if elapsed >= tv_state.countdown_seconds:
-
-                    tv_state.tv_mode = "replay"
-
-                    tv_state.replay_index = 0
-
-                    next_frame_time = (
-                        time.perf_counter()
-                    )
-
-                    continue
-
-
-                # ----------------------------------------------
-                # Durante a contagem continua mostrando
-                # a câmera AO VIVO.
-                #
-                # O HTML mostra o 3, 2, 1 por cima.
-                # ----------------------------------------------
-
-                frame = get_latest_frame()
-
-
-                if frame is None:
-
-                    time.sleep(
-                        0.01
-                    )
-
-                    continue
-
-
-                data = stream_frame(
-                    frame
-                )
-
-
-                if data is not None:
-
-                    yield data
-
-
-            # ==================================================
-            # MODO REPLAY
-            # ==================================================
-
-            elif tv_state.tv_mode == "replay":
-
-                # ----------------------------------------------
-                # TERMINOU O REPLAY
-                # ----------------------------------------------
-
-                if (
-
-                    not tv_state.replay_frames
-
-                    or
-
-                    tv_state.replay_index
-                    >=
-                    len(tv_state.replay_frames)
-
-                ):
-
-                    print("=" * 60)
-                    print("REPLAY FINALIZADO")
-                    print("=" * 60)
-
-
-                    tv_state.tv_mode = "live"
-
-                    tv_state.replay_index = 0
-
-                    tv_state.replay_frames = []
-
-
-                    next_frame_time = (
-                        time.perf_counter()
-                    )
-
-                    continue
-
-
-                # ----------------------------------------------
-                # PEGA O PRÓXIMO FRAME
-                # ----------------------------------------------
-
-                frame = tv_state.replay_frames[
-
-                    tv_state.replay_index
-
-                ]
-
-
-                tv_state.replay_index += 1
-
-
-                data = stream_frame(
-                    frame
-                )
-
-
-                if data is not None:
-
-                    yield data
-
-
-            # ==================================================
-            # MODO AO VIVO
-            # ==================================================
-
-            else:
-
-                if tv_state.tv_mode != "live":
-
-                    tv_state.tv_mode = "live"
-
-
-                frame = get_latest_frame()
-
-
-                if frame is None:
-
-                    time.sleep(
-                        0.01
-                    )
-
-                    continue
-
-
-                data = stream_frame(
-                    frame
-                )
-
-
-                if data is not None:
-
-                    yield data
-
-
-            # ==================================================
-            # CONTROLE DE FPS
-            #
-            # A transmissão fica limitada a 15 FPS.
-            #
-            # Isso evita:
-            #
-            # - CPU em 100%
-            # - centenas de JPEGs por segundo
-            # - travamentos
-            # - atraso acumulado
-            # ==================================================
-
-            next_frame_time += (
-
-                1 / FPS
-
-            )
-
-
-            remaining_time = (
-
-                next_frame_time
-
-                -
-
-                time.perf_counter()
-
-            )
-
-
-            if remaining_time > 0:
-
-                time.sleep(
-                    remaining_time
-                )
-
-
-            else:
-
-                # Se atrasou, reinicia o relógio
-                # para não acumular atraso.
-
-                next_frame_time = (
-
-                    time.perf_counter()
-
-                )
-
-
-        except GeneratorExit:
-
-            return
-
-
-        except Exception as e:
-
-            print("=" * 60)
-            print("ERRO NA TRANSMISSÃO DA TV")
-            print(e)
-            print("=" * 60)
-
-            time.sleep(
-                0.1
-            )
-
-
-# ======================================================
-# ROTA DO STREAM DA TV
-#
-# ESSA ROTA É FUNDAMENTAL.
-#
-# O ERRO:
-#
-# BuildError:
-# Could not build url for endpoint 'api.video_feed'
-#
-# acontecia porque ela tinha desaparecido.
-# ======================================================
-
-@api_bp.route(
-    "/video_feed"
-)
-def video_feed():
-
-    return Response(
-
-        generate_frames(),
-
-        mimetype=(
-
-            "multipart/x-mixed-replace; "
-
-            "boundary=frame"
-
-        ),
-
-        headers={
-
-            "Cache-Control":
-
-                "no-cache, no-store, must-revalidate",
-
-            "Pragma":
-
-                "no-cache",
-
-            "Expires":
-
-                "0"
-
-        }
-
-    )
-
-
-# ======================================================
-# SALVAR REPLAY PARA UM ALUGUEL
+# SALVAR REPLAY PARA O ALUGUEL
 # ======================================================
 
 def save_replay_for_rental(
 
     rental_id,
 
-    frames=None
+    frames,
+
+    job_id=None
 
 ):
 
-    print("=" * 60)
-    print("SALVANDO REPLAY PARA O ALUGUEL")
-    print("RENTAL ID:", rental_id)
-    print("=" * 60)
+    conn = None
 
 
-    # ==================================================
-    # BUSCAR ESPAÇO
-    # ==================================================
-
-    conn = get_connection()
-
-    cursor = conn.cursor()
+    try:
 
 
-    cursor.execute(
+        # ==============================================
+        # VERIFICAR FRAMES
+        # ==============================================
 
-        """
+        if frames is None or len(frames) == 0:
 
-        SELECT court
-
-        FROM rentals
-
-        WHERE id = ?
-
-        """,
-
-        (
-
-            rental_id,
-
-        )
-
-    )
+            message = (
+                "Nenhum frame disponível."
+            )
 
 
-    rental = cursor.fetchone()
+            if job_id:
 
-    conn.close()
+                set_replay_job(
 
+                    job_id,
 
-    if rental is None:
+                    "error",
 
-        return {
+                    message
 
-            "success": False,
+                )
 
-            "message": "Aluguel não encontrado."
-
-        }
-
-
-    court = rental[
-        "court"
-    ]
-
-
-    # ==================================================
-    # SE NÃO RECEBEU FRAMES,
-    # PEGA DO BUFFER
-    # ==================================================
-
-    if frames is None:
-
-        camera_system = CAMERA_SYSTEMS.get(
-            court
-        )
-
-
-        if camera_system is None:
 
             return {
 
                 "success": False,
 
-                "message":
-
-                    f"Nenhuma câmera configurada para {court}."
+                "message": message
 
             }
 
 
-        buffer = camera_system[
-            "buffer"
-        ]
+        # ==============================================
+        # CONGELAR OS FRAMES
+        # ==============================================
+
+        frozen_frames = []
 
 
-        frames = buffer.get_frames()
+        for frame in frames:
+
+            if frame is None:
+
+                continue
 
 
-    # ==================================================
-    # VERIFICAR FRAMES
-    # ==================================================
+            try:
 
-    if not frames:
-
-        return {
-
-            "success": False,
-
-            "message":
-
-                "Nenhum frame disponível."
-
-        }
+                frozen_frames.append(
+                    frame.copy()
+                )
 
 
-    # ==================================================
-    # SALVAR VÍDEO
-    # ==================================================
+            except Exception:
 
-    filepath = save_replay(
-
-        frames,
-
-        FPS
-
-    )
+                frozen_frames.append(
+                    frame
+                )
 
 
-    if not filepath:
+        if not frozen_frames:
 
-        return {
-
-            "success": False,
-
-            "message":
-
-                "Não foi possível salvar o vídeo."
-
-        }
+            message = (
+                "Nenhum frame válido disponível."
+            )
 
 
-    filename = os.path.basename(
-        filepath
-    )
+            if job_id:
+
+                set_replay_job(
+
+                    job_id,
+
+                    "error",
+
+                    message
+
+                )
 
 
-    print("=" * 60)
-    print("ARQUIVO CRIADO")
-    print("FILENAME:", filename)
-    print("=" * 60)
+            return {
+
+                "success": False,
+
+                "message": message
+
+            }
 
 
-    # ==================================================
-    # REGISTRAR NO BANCO
-    # ==================================================
+        print("=" * 60)
+        print("INICIANDO GRAVAÇÃO DO REPLAY")
+        print("RENTAL ID:", rental_id)
+        print("FRAMES:", len(frozen_frames))
+        print("FPS:", FPS)
+        print("=" * 60)
 
-    conn = get_connection()
 
-    cursor = conn.cursor()
+        # ==============================================
+        # SALVAR ARQUIVO
+        # ==============================================
+
+        filepath = save_replay(
+
+            frozen_frames,
+
+            FPS
+
+        )
 
 
-    try:
+        if not filepath:
+
+            message = (
+                "A função save_replay não retornou "
+                "o caminho do arquivo."
+            )
+
+
+            if job_id:
+
+                set_replay_job(
+
+                    job_id,
+
+                    "error",
+
+                    message
+
+                )
+
+
+            return {
+
+                "success": False,
+
+                "message": message
+
+            }
+
+
+        # ==============================================
+        # VERIFICAR SE O ARQUIVO EXISTE
+        # ==============================================
+
+        if not os.path.isfile(
+            filepath
+        ):
+
+            message = (
+                "O replay foi processado, mas o arquivo "
+                "não foi encontrado: "
+                + str(filepath)
+            )
+
+
+            if job_id:
+
+                set_replay_job(
+
+                    job_id,
+
+                    "error",
+
+                    message
+
+                )
+
+
+            return {
+
+                "success": False,
+
+                "message": message
+
+            }
+
+
+        # ==============================================
+        # VERIFICAR TAMANHO DO ARQUIVO
+        # ==============================================
+
+        filesize = os.path.getsize(
+            filepath
+        )
+
+
+        if filesize <= 0:
+
+            message = (
+                "O arquivo de replay foi criado vazio."
+            )
+
+
+            if job_id:
+
+                set_replay_job(
+
+                    job_id,
+
+                    "error",
+
+                    message
+
+                )
+
+
+            return {
+
+                "success": False,
+
+                "message": message
+
+            }
+
+
+        # ==============================================
+        # PEGAR NOME DO ARQUIVO
+        # ==============================================
+
+        filename = os.path.basename(
+            filepath
+        )
+
+
+        # ==============================================
+        # CONECTAR AO BANCO
+        # ==============================================
+
+        conn = get_connection()
+
+        cursor = conn.cursor()
+
+
+        # ==============================================
+        # HORÁRIO LOCAL DE BELÉM
+        # ==============================================
+        #
+        # Belém está em UTC-3.
+        #
+        # Não usamos ZoneInfo para evitar o erro:
+        #
+        # No time zone found with key America/Belem
+        # ==============================================
+
+        created_at = (
+
+            datetime.utcnow()
+
+            - timedelta(hours=3)
+
+        ).strftime(
+
+            "%Y-%m-%d %H:%M:%S"
+
+        )
+
+
+        # ==============================================
+        # REGISTRAR REPLAY NO BANCO
+        # ==============================================
 
         cursor.execute(
 
             """
-
-            INSERT INTO replays
-
-            (
+            INSERT INTO replays (
 
                 rental_id,
 
-                filename
+                filename,
+
+                created_at
 
             )
-
-            VALUES (?, ?)
-
+            VALUES (?, ?, ?)
             """,
 
             (
 
                 rental_id,
 
-                filename
+                filename,
+
+                created_at
 
             )
 
@@ -923,10 +690,30 @@ def save_replay_for_rental(
         conn.commit()
 
 
+        # ==============================================
+        # MARCAR JOB COMO PRONTO
+        # ==============================================
+
+        if job_id:
+
+            set_replay_job(
+
+                job_id,
+
+                "ready",
+
+                "Replay salvo com sucesso.",
+
+                filename
+
+            )
+
+
         print("=" * 60)
-        print("REPLAY REGISTRADO NO BANCO")
-        print("RENTAL ID:", rental_id)
-        print("FILENAME:", filename)
+        print("REPLAY SALVO COM SUCESSO")
+        print("ARQUIVO:", filepath)
+        print("TAMANHO:", filesize, "bytes")
+        print("HORÁRIO:", created_at)
         print("=" * 60)
 
 
@@ -941,12 +728,39 @@ def save_replay_for_rental(
 
     except Exception as e:
 
-        conn.rollback()
+
+        if conn is not None:
+
+            try:
+
+                conn.rollback()
+
+            except Exception:
+
+                pass
+
+
+        message = str(
+            e
+        )
+
+
+        if job_id:
+
+            set_replay_job(
+
+                job_id,
+
+                "error",
+
+                message
+
+            )
 
 
         print("=" * 60)
-        print("ERRO AO REGISTRAR REPLAY")
-        print(e)
+        print("ERRO AO REGISTRAR/GRAVAR REPLAY")
+        print(message)
         print("=" * 60)
 
 
@@ -954,25 +768,35 @@ def save_replay_for_rental(
 
             "success": False,
 
-            "message": str(e)
+            "message": message
 
         }
 
 
     finally:
 
-        conn.close()
+        if conn is not None:
+
+            conn.close()
 
 
 # ======================================================
 # SALVAR REPLAY EM SEGUNDO PLANO
+# ======================================================
+#
+# Cada solicitação possui sua própria thread.
+#
+# Portanto, Quadra 1 e Ping Pong 1 podem gerar
+# replay ao mesmo tempo.
 # ======================================================
 
 def save_replay_background(
 
     rental_id,
 
-    frames
+    frames,
+
+    job_id
 
 ):
 
@@ -980,6 +804,7 @@ def save_replay_background(
 
         print("=" * 60)
         print("SALVAMENTO EM SEGUNDO PLANO")
+        print("JOB ID:", job_id)
         print("RENTAL ID:", rental_id)
         print("FRAMES:", len(frames))
         print("=" * 60)
@@ -989,38 +814,78 @@ def save_replay_background(
 
             rental_id,
 
-            frames
+            frames,
+
+            job_id
 
         )
 
 
-        if result.get("success"):
+        if result.get(
+            "success"
+        ):
 
-            tv_state.last_replay = (
-
-                result.get(
-                    "filename"
-                )
-
-            )
-
-
+            print("=" * 60)
             print("REPLAY SALVO COM SUCESSO")
+            print(
+                "ARQUIVO:",
+                result.get("filename")
+            )
+            print("JOB ID:", job_id)
+            print("=" * 60)
 
 
         else:
 
-            print(
-                "ERRO AO SALVAR REPLAY:",
-                result.get("message")
+            message = result.get(
+
+                "message",
+
+                "Falha desconhecida ao salvar o replay."
+
             )
+
+
+            set_replay_job(
+
+                job_id,
+
+                "error",
+
+                message
+
+            )
+
+
+            print("=" * 60)
+            print("ERRO AO SALVAR REPLAY")
+            print("JOB ID:", job_id)
+            print(message)
+            print("=" * 60)
 
 
     except Exception as e:
 
+        message = str(
+            e
+        )
+
+
+        set_replay_job(
+
+            job_id,
+
+            "error",
+
+            message
+
+        )
+
+
         print("=" * 60)
         print("ERRO NO SALVAMENTO EM SEGUNDO PLANO")
-        print(e)
+        print("JOB ID:", job_id)
+        print(message)
         print("=" * 60)
 
 
@@ -1031,29 +896,17 @@ def save_replay_background(
 @api_bp.route(
     "/save_replay"
 )
+
 def save_current_replay():
 
-    camera_system = CAMERA_SYSTEMS.get(
-        "Quadra 1"
-    )
-
-
-    if camera_system is None:
-
-        return "Sistema da Quadra 1 não encontrado."
-
-
-    buffer = camera_system[
-        "buffer"
-    ]
-
-
-    frames = buffer.get_frames()
+    frames = quadra_buffer.get_frames()
 
 
     if not frames:
 
-        return "Nenhum replay disponível."
+        return (
+            "Nenhum replay disponível."
+        )
 
 
     filepath = save_replay(
@@ -1078,68 +931,61 @@ def save_current_replay():
         )
 
 
-    return "Não foi possível salvar o replay."
+    return (
+        "Não foi possível salvar o replay."
+    )
 
 
 # ======================================================
-# STATUS DA TV
+# STATUS DO SISTEMA
+# ======================================================
+#
+# Mantido apenas para compatibilidade.
+#
+# NÃO EXISTE MAIS TV AO VIVO.
 # ======================================================
 
 @api_bp.route(
     "/tv/status"
 )
+
 def tv_status():
 
-    camera_system = CAMERA_SYSTEMS.get(
-        "Quadra 1"
+    quadra_frames = len(
+        quadra_buffer.get_frames()
     )
 
 
-    buffer_frames = 0
-
-
-    if camera_system is not None:
-
-        buffer = camera_system[
-            "buffer"
-        ]
-
-
-        frames = buffer.get_frames()
-
-
-        buffer_frames = len(
-            frames
-        )
+    pingpong_frames = len(
+        pingpong_buffer.get_frames()
+    )
 
 
     return jsonify({
 
-        "mode":
+        "mode": "replay_only",
 
-            tv_state.tv_mode,
+        "last_replay": None,
 
+        "quadra_buffer_frames": quadra_frames,
 
-        "last_replay":
+        "quadra_buffer_seconds": round(
 
-            tv_state.last_replay,
+            quadra_frames / FPS,
 
+            1
 
-        "buffer_frames":
+        ),
 
-            buffer_frames,
+        "pingpong_buffer_frames": pingpong_frames,
 
+        "pingpong_buffer_seconds": round(
 
-        "buffer_seconds":
+            pingpong_frames / FPS,
 
-            round(
+            1
 
-                buffer_frames / FPS,
-
-                1
-
-            )
-
+        )
 
     })
 
@@ -1155,11 +1001,13 @@ def tv_status():
     methods=["POST"]
 
 )
+
 def request_replay():
 
-    # ==================================================
-    # RECEBER TOKEN
-    # ==================================================
+
+    # ==============================================
+    # RECEBER DADOS
+    # ==============================================
 
     data = request.get_json(
         silent=True
@@ -1193,66 +1041,53 @@ def request_replay():
         }), 400
 
 
-    # ==================================================
-    # NÃO DEIXAR DOIS REPLAYS AO MESMO TEMPO
-    # ==================================================
-
-    if tv_state.tv_mode != "live":
-
-        return jsonify({
-
-            "success": False,
-
-            "message":
-
-                "Já existe um replay em andamento."
-
-        }), 409
-
-
     print("=" * 60)
     print("REPLAY SOLICITADO")
     print("TOKEN:", token)
     print("=" * 60)
 
 
-    # ==================================================
+    # ==============================================
     # BUSCAR ALUGUEL
-    # ==================================================
+    # ==============================================
 
     conn = get_connection()
 
-    cursor = conn.cursor()
+
+    try:
+
+        cursor = conn.cursor()
 
 
-    cursor.execute(
+        cursor.execute(
 
-        """
+            """
+            SELECT
 
-        SELECT
+                id,
 
-            id,
+                court
 
-            court
+            FROM rentals
 
-        FROM rentals
+            WHERE public_token = ?
+            """,
 
-        WHERE public_token = ?
+            (
 
-        """,
+                token,
 
-        (
-
-            token,
+            )
 
         )
 
-    )
+
+        rental = cursor.fetchone()
 
 
-    rental = cursor.fetchone()
+    finally:
 
-    conn.close()
+        conn.close()
 
 
     if rental is None:
@@ -1261,9 +1096,7 @@ def request_replay():
 
             "success": False,
 
-            "message":
-
-                "Reserva não encontrada."
+            "message": "Reserva não encontrada."
 
         }), 404
 
@@ -1278,9 +1111,9 @@ def request_replay():
     ]
 
 
-    # ==================================================
-    # BUSCAR SISTEMA DA CÂMERA
-    # ==================================================
+    # ==============================================
+    # ESCOLHER BUFFER CORRETO
+    # ==============================================
 
     camera_system = CAMERA_SYSTEMS.get(
         court
@@ -1293,85 +1126,142 @@ def request_replay():
 
             "success": False,
 
-            "message":
-
-                f"Nenhuma câmera configurada para {court}."
+            "message": (
+                f"Nenhum sistema configurado para {court}."
+            )
 
         }), 500
 
 
-    camera = camera_system.get(
-        "camera"
+    buffer = camera_system.get(
+        "buffer"
     )
 
 
-    if camera is None:
+    if buffer is None:
 
         return jsonify({
 
             "success": False,
 
-            "message":
-
-                f"A câmera de {court} ainda não está configurada."
+            "message": (
+                f"Nenhum buffer configurado para {court}."
+            )
 
         }), 500
 
 
-    # ==================================================
-    # CONGELAR BUFFER AGORA
-    #
-    # Esse replay será enviado imediatamente para a TV.
-    # ==================================================
-
-    buffer = camera_system[
-        "buffer"
-    ]
-
+    # ==============================================
+    # PEGAR FRAMES
+    # ==============================================
 
     frames = buffer.get_frames()
 
 
-    if not frames:
+    if frames is None or len(frames) == 0:
 
         return jsonify({
 
             "success": False,
 
-            "message":
-
+            "message": (
                 "Nenhum frame disponível para o replay."
+            )
 
         }), 500
 
 
-    # ==================================================
-    # PREPARAR TV IMEDIATAMENTE
-    #
-    # Não esperamos salvar o MP4.
-    # ==================================================
+    # ==============================================
+    # CRIAR JOB ID ÚNICO
+    # ==============================================
 
-    tv_state.replay_frames = frames
+    job_id = (
 
-    tv_state.replay_index = 0
+        str(rental_id)
 
-    tv_state.countdown_seconds = 3
+        +
 
-    tv_state.countdown_start = time.time()
+        "_"
 
-    tv_state.tv_mode = "countdown"
+        +
+
+        str(
+            int(
+                time.time() * 1000
+            )
+        )
+
+    )
+
+
+    # ==============================================
+    # CONGELAR OS FRAMES
+    # ==============================================
+
+    frozen_frames = []
+
+
+    for frame in frames:
+
+        if frame is None:
+
+            continue
+
+
+        try:
+
+            frozen_frames.append(
+                frame.copy()
+            )
+
+
+        except Exception:
+
+            frozen_frames.append(
+                frame
+            )
+
+
+    if not frozen_frames:
+
+        return jsonify({
+
+            "success": False,
+
+            "message": (
+                "Nenhum frame válido disponível para o replay."
+            )
+
+        }), 500
 
 
     print("=" * 60)
-    print("REPLAY ENVIADO PARA A TV")
-    print("CONTAGEM: 3, 2, 1")
-    print("FRAMES:", len(frames))
+    print("REPLAY PREPARADO")
+    print("LOCAL:", court)
+    print("RENTAL ID:", rental_id)
+    print("JOB ID:", job_id)
+    print("FRAMES:", len(frozen_frames))
     print("=" * 60)
 
 
-    # ==================================================
+    # ==============================================
+    # MARCAR COMO PROCESSANDO
+    # ==============================================
+
+    set_replay_job(
+
+        job_id,
+
+        "processing",
+
+        "Replay está sendo gravado."
+
+    )
+
+
+    # ==============================================
     # SALVAR EM SEGUNDO PLANO
-    # ==================================================
+    # ==============================================
 
     save_thread = threading.Thread(
 
@@ -1381,11 +1271,15 @@ def request_replay():
 
             rental_id,
 
-            frames
+            frozen_frames,
+
+            job_id
 
         ),
 
-        daemon=True
+        daemon=True,
+
+        name="ReplaySave-" + job_id
 
     )
 
@@ -1393,27 +1287,19 @@ def request_replay():
     save_thread.start()
 
 
-    # ==================================================
-    # RESPONDER IMEDIATAMENTE
-    # ==================================================
-
     return jsonify({
 
         "success": True,
 
-        "message":
+        "message": "Replay está sendo gravado.",
 
-            "Replay enviado para a TV.",
+        "status": "processing",
 
+        "job_id": job_id,
 
-        "status":
+        "court": court,
 
-            "processing",
-
-
-        "frames":
-
-            len(frames)
+        "frames": len(frozen_frames)
 
     })
 
@@ -1425,185 +1311,219 @@ def request_replay():
 @api_bp.route(
     "/api/replay/status/<public_token>"
 )
-def replay_status(public_token):
+
+def replay_status(
+    public_token
+):
 
     conn = get_connection()
 
     cursor = conn.cursor()
 
 
-    # ==================================================
-    # BUSCAR RESERVA
-    # ==================================================
+    try:
 
-    cursor.execute(
 
-        """
+        # ==============================================
+        # BUSCAR RESERVA
+        # ==============================================
 
-        SELECT
+        cursor.execute(
 
-            id,
+            """
+            SELECT
 
-            customer_name,
+                id,
 
-            court,
+                customer_name,
 
-            scheduled_date,
+                court,
 
-            scheduled_time,
+                scheduled_date,
 
-            duration,
+                scheduled_time,
 
-            status,
+                duration,
 
-            public_token
+                status,
 
-        FROM rentals
+                public_token
 
-        WHERE public_token = ?
+            FROM rentals
 
-        """,
+            WHERE public_token = ?
+            """,
 
-        (
+            (
 
-            public_token,
+                public_token,
+
+            )
 
         )
 
-    )
+
+        rental = cursor.fetchone()
 
 
-    rental = cursor.fetchone()
+        if rental is None:
+
+            return jsonify({
+
+                "success": False,
+
+                "message": "Reserva não encontrada."
+
+            }), 404
 
 
-    if rental is None:
+        # ==============================================
+        # BUSCAR REPLAYS
+        # ==============================================
 
-        conn.close()
+        cursor.execute(
 
+            """
+            SELECT
+
+                id,
+
+                filename,
+
+                created_at
+
+            FROM replays
+
+            WHERE rental_id = ?
+
+            ORDER BY id ASC
+            """,
+
+            (
+
+                rental["id"],
+
+            )
+
+        )
+
+
+        replay_rows = cursor.fetchall()
+
+        replays = []
+
+
+        for replay in replay_rows:
+
+            replays.append({
+
+                "id": replay["id"],
+
+                "filename": replay["filename"],
+
+                "created_at": replay["created_at"]
+
+            })
+
+
+        # ==============================================
+        # DEFINIR STATUS
+        # ==============================================
+
+        if len(replays) > 0:
+
+            replay_processing_status = "ready"
+
+            replay_message = (
+                "Replay disponível."
+            )
+
+
+        else:
+
+            job_id = request.args.get(
+                "job_id"
+            )
+
+
+            job = (
+
+                get_replay_job(
+                    job_id
+                )
+
+                if job_id
+
+                else None
+
+            )
+
+
+            if job is not None:
+
+                replay_processing_status = job.get(
+
+                    "status",
+
+                    "processing"
+
+                )
+
+
+                replay_message = job.get(
+
+                    "message",
+
+                    ""
+
+                )
+
+
+            else:
+
+                replay_processing_status = (
+                    "processing"
+                )
+
+
+                replay_message = (
+                    "Replay ainda está sendo processado."
+                )
+
+
+        # ==============================================
+        # RETORNAR STATUS
+        # ==============================================
 
         return jsonify({
 
-            "success": False,
+            "success": True,
 
-            "message":
+            "id": rental["id"],
 
-                "Reserva não encontrada."
+            "customer_name": rental["customer_name"],
 
-        }), 404
+            "court": rental["court"],
 
+            "scheduled_date": rental["scheduled_date"],
 
-    # ==================================================
-    # BUSCAR REPLAYS
-    # ==================================================
+            "scheduled_time": rental["scheduled_time"],
 
-    cursor.execute(
+            "duration": rental["duration"],
 
-        """
+            "status": rental["status"],
 
-        SELECT
+            "replay_status": replay_processing_status,
 
-            id,
+            "replay_message": replay_message,
 
-            filename,
+            "public_token": rental["public_token"],
 
-            created_at
-
-        FROM replays
-
-        WHERE rental_id = ?
-
-        ORDER BY id ASC
-
-        """,
-
-        (
-
-            rental["id"],
-
-        )
-
-    )
-
-
-    replay_rows = cursor.fetchall()
-
-
-    replays = []
-
-
-    for replay in replay_rows:
-
-        replays.append({
-
-            "id":
-
-                replay["id"],
-
-
-            "filename":
-
-                replay["filename"],
-
-
-            "created_at":
-
-                replay["created_at"]
+            "replays": replays
 
         })
 
 
-    conn.close()
+    finally:
 
-
-    return jsonify({
-
-        "success":
-
-            True,
-
-
-        "id":
-
-            rental["id"],
-
-
-        "customer_name":
-
-            rental["customer_name"],
-
-
-        "court":
-
-            rental["court"],
-
-
-        "scheduled_date":
-
-            rental["scheduled_date"],
-
-
-        "scheduled_time":
-
-            rental["scheduled_time"],
-
-
-        "duration":
-
-            rental["duration"],
-
-
-        "status":
-
-            rental["status"],
-
-
-        "public_token":
-
-            rental["public_token"],
-
-
-        "replays":
-
-            replays
-
-    })
+        conn.close()

@@ -4,6 +4,7 @@ from database.database import get_connection
 
 import secrets
 
+
 print("ARQUIVO rentals.py CARREGADO")
 
 
@@ -30,13 +31,47 @@ def rentals():
 
     cursor.execute(
         """
+
         SELECT *
 
         FROM rentals
 
         ORDER BY
+
+            CASE
+
+                WHEN UPPER(TRIM(status)) = 'EM ANDAMENTO'
+                THEN 1
+
+                WHEN UPPER(TRIM(status)) = 'AGENDADO'
+                THEN 2
+
+                WHEN UPPER(TRIM(status)) = 'FINALIZADO'
+                THEN 4
+
+                WHEN UPPER(TRIM(status)) = 'CANCELADO'
+                THEN 5
+
+                ELSE 3
+
+            END ASC,
+
+            CASE
+
+                WHEN UPPER(TRIM(status)) IN (
+                    'FINALIZADO',
+                    'CANCELADO'
+                )
+                THEN 1
+
+                ELSE 0
+
+            END ASC,
+
             scheduled_date ASC,
+
             scheduled_time ASC
+
         """
     )
 
@@ -101,26 +136,42 @@ def create_rental():
 
         cursor.execute(
             """
+
             UPDATE rentals
 
             SET
+
                 customer_name = ?,
+
                 phone = ?,
+
                 court = ?,
+
                 scheduled_date = ?,
+
                 scheduled_time = ?,
+
                 duration = ?
 
             WHERE id = ?
+
             """,
             (
+
                 customer,
+
                 phone,
+
                 court,
+
                 date,
+
                 time,
+
                 duration,
+
                 rental_id
+
             )
         )
 
@@ -141,30 +192,50 @@ def create_rental():
 
         cursor.execute(
             """
+
             INSERT INTO rentals
 
             (
+
                 customer_name,
+
                 phone,
+
                 court,
+
                 scheduled_date,
+
                 scheduled_time,
+
                 duration,
+
                 status,
+
                 public_token
+
             )
 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+
             """,
             (
+
                 customer,
+
                 phone,
+
                 court,
+
                 date,
+
                 time,
+
                 duration,
+
                 "AGENDADO",
+
                 public_token
+
             )
         )
 
@@ -199,17 +270,24 @@ def start_rental(rental_id):
 
     cursor.execute(
         """
+
         UPDATE rentals
 
         SET
+
             status = ?,
+
             actual_start = CURRENT_TIMESTAMP
 
         WHERE id = ?
+
         """,
         (
+
             "EM ANDAMENTO",
+
             rental_id
+
         )
     )
 
@@ -251,17 +329,24 @@ def finish_rental(rental_id):
 
     cursor.execute(
         """
+
         UPDATE rentals
 
         SET
+
             status = ?,
+
             actual_end = CURRENT_TIMESTAMP
 
         WHERE id = ?
+
         """,
         (
+
             "FINALIZADO",
+
             rental_id
+
         )
     )
 
@@ -284,19 +369,15 @@ def finish_rental(rental_id):
         print("RENTAL ID:", rental_id)
         print("=" * 60)
 
-
         from routes.api import save_replay_for_rental
-
 
         print(
             "FUNÇÃO save_replay_for_rental ENCONTRADA"
         )
 
-
         replay_result = save_replay_for_rental(
             rental_id
         )
-
 
         print("=" * 60)
         print("RESULTADO DO SALVAMENTO DO REPLAY:")
@@ -350,19 +431,25 @@ def add_time():
 
     cursor.execute(
         """
+
         UPDATE rentals
 
         SET
+
             extra_duration =
                 COALESCE(extra_duration, 0)
                 +
                 ?
 
         WHERE id = ?
+
         """,
         (
+
             extra_duration,
+
             rental_id
+
         )
     )
 
@@ -395,16 +482,22 @@ def cancel_rental(rental_id):
 
     cursor.execute(
         """
+
         UPDATE rentals
 
         SET
+
             status = ?
 
         WHERE id = ?
+
         """,
         (
+
             "CANCELADO",
+
             rental_id
+
         )
     )
 
@@ -441,12 +534,16 @@ def delete_rental(rental_id):
 
     cursor.execute(
         """
+
         DELETE FROM replays
 
         WHERE rental_id = ?
+
         """,
         (
+
             rental_id,
+
         )
     )
 
@@ -457,12 +554,16 @@ def delete_rental(rental_id):
 
     cursor.execute(
         """
+
         DELETE FROM rentals
 
         WHERE id = ?
+
         """,
         (
+
             rental_id,
+
         )
     )
 
@@ -497,23 +598,36 @@ def public_replay(public_token):
 
     cursor.execute(
         """
+
         SELECT
+
             id,
+
             customer_name,
+
             phone,
+
             court,
+
             scheduled_date,
+
             scheduled_time,
+
             duration,
+
             status,
+
             public_token
 
         FROM rentals
 
         WHERE public_token = ?
+
         """,
         (
+
             public_token,
+
         )
     )
 

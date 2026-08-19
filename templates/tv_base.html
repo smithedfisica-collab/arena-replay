@@ -1,63 +1,55 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 
 <head>
 
     <meta charset="UTF-8">
 
-    <title>Arena Replay TV</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tv.css') }}">
+    <title>Arena Raízes - TV</title>
 
-    <style>
-
-    </style>
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='css/tv.css'
+        ) }}">
 
 </head>
 
+
 <body>
 
-<div id="liveBadge">
 
-    <div id="liveDot"></div>
+    <div id="liveBadge">
 
-    AO VIVO
+        <div id="liveDot"></div>
 
-</div>
-
-<div id="replayOverlay">
-
-    <div id="replayTitle">
-
-        🎬 REPLAY
+        <span>AO VIVO</span>
 
     </div>
 
-    <div id="arenaName">
 
-        Arena Raízes
+    {% block content %}
+
+    {% endblock %}
+
+
+    <div id="tvLogo">
+
+        <img
+            src="{{ url_for(
+                'static',
+                filename='img/logo.png'
+            ) }}"
+            alt="Arena Raízes">
 
     </div>
 
-    <div id="countdown">
-
-        3
-
-    </div>
-
-</div>
-
-{% block content %}
-
-{% endblock %}
-
-<div id="tvLogo">
-
-    <img
-        src="{{ url_for('static', filename='img/logo.png') }}"
-        alt="Arena Raízes">
-
-</div>
 
 </body>
 

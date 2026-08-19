@@ -135,7 +135,7 @@
                 <a
                     href="https://wa.me/{{ rental['phone']|replace('(', '')|replace(')', '')|replace(' ', '')|replace('-', '') }}?text={{
                         (
-                            '🏖️ Arena Raízes\n\n'
+                            'Arena Raízes\n\n'
                             ~ 'Olá, ' ~ rental['customer_name'] ~ '! 👋\n\n'
                             ~ 'Sua reserva foi confirmada com sucesso! 🎉\n\n'
                             ~ '📅 Data: '
@@ -150,7 +150,7 @@
                             ~ rental['scheduled_time']
                             ~ '\n'
 
-                            ~ '🏖️ Espaço: '
+                            ~ 'Espaço: '
                             ~ rental['court']
                             ~ '\n'
 
@@ -168,7 +168,7 @@
 
                             ~ 'Esperamos você na Arena Raízes! 💚\n'
 
-                            ~ 'Bom jogo! 🎾'
+                            ~ 'Bom jogo!'
                         )|urlencode
                     }}"
 
@@ -221,12 +221,19 @@
                 method="POST">
 
                 <button
-                    type="submit"
-                    class="btn-delete">
+    type="submit"
+    class="btn-delete"
+    title="Remover esta partida da tela">
 
-                    🗑 Remover da Tela
+    <span class="delete-icon">
+        🗑
+    </span>
 
-                </button>
+    <span>
+        Remover da Tela
+    </span>
+
+</button>
 
             </form>
 
