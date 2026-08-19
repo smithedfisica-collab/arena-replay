@@ -3,7 +3,16 @@ from datetime import timedelta, datetime
 
 from config import SECRET_KEY, SESSION_HOURS
 
-from database.init_db import init_database
+# ==========================================================
+# BANCO DE DADOS
+# ==========================================================
+
+from database.init_db import init_db
+
+
+# ==========================================================
+# BLUEPRINTS
+# ==========================================================
 
 from routes.dashboard import dashboard_bp
 from routes.operator import operator_bp
@@ -14,17 +23,30 @@ from routes.rentals import rentals_bp
 
 
 # ==========================================================
-# INICIALIZAR BANCO DE DADOS
-# ==========================================================
-
-init_database()
-
-
-# ==========================================================
 # CRIAÇÃO DO APP
 # ==========================================================
 
 app = Flask(__name__)
+
+
+# ==========================================================
+# CONFIGURAÇÕES
+# ==========================================================
+
+app.secret_key = SECRET_KEY
+
+app.permanent_session_lifetime = timedelta(
+    hours=SESSION_HOURS
+)
+
+
+# ==========================================================
+# INICIALIZAR BANCO DE DADOS
+# ==========================================================
+
+with app.app_context():
+
+    init_db()
 
 
 # ==========================================================
@@ -51,22 +73,13 @@ def weekday_filter(date_string):
             "Domingo"
         ]
 
-        return weekdays[date.weekday()]
+        return weekdays[
+            date.weekday()
+        ]
 
     except Exception:
 
         return ""
-
-
-# ==========================================================
-# CONFIGURAÇÕES
-# ==========================================================
-
-app.secret_key = SECRET_KEY
-
-app.permanent_session_lifetime = timedelta(
-    hours=SESSION_HOURS
-)
 
 
 # ==========================================================
@@ -76,24 +89,38 @@ app.permanent_session_lifetime = timedelta(
 @app.route("/")
 def home():
 
-    return redirect("/dashboard")
+    return redirect(
+        "/dashboard"
+    )
 
 
 # ==========================================================
-# BLUEPRINTS
+# REGISTRO DOS BLUEPRINTS
 # ==========================================================
 
-app.register_blueprint(login_bp)
+app.register_blueprint(
+    login_bp
+)
 
-app.register_blueprint(dashboard_bp)
+app.register_blueprint(
+    dashboard_bp
+)
 
-app.register_blueprint(operator_bp)
+app.register_blueprint(
+    operator_bp
+)
 
-app.register_blueprint(tv_bp)
+app.register_blueprint(
+    tv_bp
+)
 
-app.register_blueprint(api_bp)
+app.register_blueprint(
+    api_bp
+)
 
-app.register_blueprint(rentals_bp)
+app.register_blueprint(
+    rentals_bp
+)
 
 
 # ==========================================================
