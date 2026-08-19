@@ -7,12 +7,11 @@ def init_database():
 
     cursor = conn.cursor()
 
-    # ======================================================
-    # TABELA DE ALUGUÉIS
-    # ======================================================
+    # ==========================================================
+    # CRIA A TABELA, CASO ELA AINDA NÃO EXISTA
+    # ==========================================================
 
-    cursor.execute(
-        """
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS rentals (
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,45 +36,78 @@ def init_database():
 
             status TEXT DEFAULT 'AGENDADO',
 
-            public_token TEXT UNIQUE,
+            portal_token TEXT,
 
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
         )
-        """
-    )
+    """)
 
-    # ======================================================
-    # TABELA DE REPLAYS
-    # ======================================================
 
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS replays (
+    # ==========================================================
+    # VERIFICA AS COLUNAS EXISTENTES
+    # ==========================================================
 
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cursor.execute("PRAGMA table_info(rentals)")
 
-            rental_id INTEGER NOT NULL,
+    columns = [
+        column[1]
+        for column in cursor.fetchall()
+    ]
 
-            filename TEXT NOT NULL,
 
-            created_at TEXT,
+    # ==========================================================
+    # ADICIONA AS NOVAS COLUNAS CASO NÃO EXISTAM
+    # ==========================================================
 
-            FOREIGN KEY (rental_id)
-                REFERENCES rentals(id)
+    if "actual_start" not in columns:
 
-        )
-        """
-    )
+        cursor.execute("""
+            ALTER TABLE rentals
+            ADD COLUMN actual_start TEXT
+        """)
+
+
+    if "actual_end" not in columns:
+
+        cursor.execute("""
+            ALTER TABLE rentals
+            ADD COLUMN actual_end TEXT
+        """)
+
+
+    if "extra_duration" not in columns:
+
+        cursor.execute("""
+            ALTER TABLE rentals
+            ADD COLUMN extra_duration INTEGER DEFAULT 0
+        """)
+
+
+    if "status" not in columns:
+
+        cursor.execute("""
+            ALTER TABLE rentals
+            ADD COLUMN status TEXT DEFAULT 'AGENDADO'
+        """)
+
+
+    if "portal_token" not in columns:
+
+        cursor.execute("""
+            ALTER TABLE rentals
+            ADD COLUMN portal_token TEXT
+        """)
+
 
     conn.commit()
 
     conn.close()
 
+
     print("=" * 60)
-    print("BANCO DE DADOS INICIALIZADO COM SUCESSO")
-    print("TABELA RENTALS: OK")
-    print("TABELA REPLAYS: OK")
+    print("BANCO DE DADOS VERIFICADO COM SUCESSO!")
+    print("TABELA RENTALS ATUALIZADA.")
     print("=" * 60)
 
 
@@ -83,4 +115,4 @@ if __name__ == "__main__":
 
     init_database()
 
-    print("Banco criado com sucesso!")
+    print("Banco criado/atualizado com sucesso!")
