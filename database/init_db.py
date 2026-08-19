@@ -7,7 +7,12 @@ def init_database():
 
     cursor = conn.cursor()
 
-    cursor.execute("""
+    # ======================================================
+    # TABELA DE ALUGUÉIS
+    # ======================================================
+
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS rentals (
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,20 +33,50 @@ def init_database():
 
             actual_end TEXT,
 
-extra_duration INTEGER DEFAULT 0,
+            extra_duration INTEGER DEFAULT 0,
 
-status TEXT DEFAULT 'AGENDADO',
+            status TEXT DEFAULT 'AGENDADO',
 
-            portal_token TEXT,
+            public_token TEXT UNIQUE,
 
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
         )
-    """)
+        """
+    )
+
+    # ======================================================
+    # TABELA DE REPLAYS
+    # ======================================================
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS replays (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            rental_id INTEGER NOT NULL,
+
+            filename TEXT NOT NULL,
+
+            created_at TEXT,
+
+            FOREIGN KEY (rental_id)
+                REFERENCES rentals(id)
+
+        )
+        """
+    )
 
     conn.commit()
 
     conn.close()
+
+    print("=" * 60)
+    print("BANCO DE DADOS INICIALIZADO COM SUCESSO")
+    print("TABELA RENTALS: OK")
+    print("TABELA REPLAYS: OK")
+    print("=" * 60)
 
 
 if __name__ == "__main__":

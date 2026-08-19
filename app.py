@@ -3,12 +3,21 @@ from datetime import timedelta, datetime
 
 from config import SECRET_KEY, SESSION_HOURS
 
+from database.init_database import init_database
+
 from routes.dashboard import dashboard_bp
 from routes.operator import operator_bp
 from routes.tv import tv_bp
 from routes.api import api_bp
 from routes.login import login_bp
 from routes.rentals import rentals_bp
+
+
+# ==========================================================
+# INICIALIZAR BANCO DE DADOS
+# ==========================================================
+
+init_database()
 
 
 # ==========================================================
