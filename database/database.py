@@ -41,6 +41,37 @@ def get_connection():
 
 
 # ==========================================================
+# CRIAR TABELAS AUTOMATICAMENTE
+# ==========================================================
+
+def init_database():
+
+    conn = get_connection()
+
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS rentals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            customer_name TEXT NOT NULL,
+            phone TEXT,
+            court TEXT NOT NULL,
+            scheduled_date TEXT NOT NULL,
+            scheduled_time TEXT NOT NULL,
+            duration INTEGER NOT NULL
+        )
+        """
+    )
+
+    conn.commit()
+
+    conn.close()
+
+    print("Tabela rentals verificada/criada com sucesso.")
+
+
+# ==========================================================
 # BUSCAR ALUGUÉIS
 # ==========================================================
 
@@ -51,13 +82,11 @@ def get_all_rentals():
     cursor = conn.cursor()
 
     cursor.execute(
-
         """
         SELECT *
         FROM rentals
         ORDER BY id DESC
         """
-
     )
 
     rentals = cursor.fetchall()
@@ -85,7 +114,6 @@ def create_rental(
     cursor = conn.cursor()
 
     cursor.execute(
-
         """
         INSERT INTO rentals
         (
@@ -98,20 +126,27 @@ def create_rental(
         )
         VALUES (?, ?, ?, ?, ?, ?)
         """,
-
         (
-
             customer_name,
             phone,
             court,
             scheduled_date,
             scheduled_time,
             duration
-
         )
-
     )
 
     conn.commit()
 
+    rental_id = cursor.lastrowid
+
     conn.close()
+
+    return rental_id
+
+
+# ==========================================================
+# INICIALIZAR BANCO AUTOMATICAMENTE
+# ==========================================================
+
+init_database()
